@@ -18,14 +18,14 @@
 #define TurnDist 400
 
 // Define a stepper and the pins it will use
-AccelStepper frontTurn(1, 14, 3);
-AccelStepper frontSlide(1, 415, 4);
-AccelStepper backTurn(1, 16, 5);
-AccelStepper backSlide(1, 17, 6);
-AccelStepper leftTurn(1, 18, 7);
-AccelStepper leftSlide(1, 19, 8);
-AccelStepper rightTurn(1, 20, 9);
-AccelStepper rightSlide(1, 21, 10);
+AccelStepper frontTurn(1, 22, 3);
+AccelStepper frontSlide(1, 23, 4);
+AccelStepper backTurn(1, 24, 5);
+AccelStepper backSlide(1, 25, 6);
+AccelStepper leftTurn(1, 26, 7);
+AccelStepper leftSlide(1, 27, 8);
+AccelStepper rightTurn(1, 28, 9);
+AccelStepper rightSlide(1, 29, 10);
 
 char chSequence[40];
 int nCounter, nTotalStep;
@@ -33,35 +33,35 @@ int nCounter, nTotalStep;
 void setup()
 {
   // Change these to suit your stepper if you want
-  frontTurn.setEnablePin(23);
+  frontTurn.setEnablePin(30);
   frontTurn.setMaxSpeed(MaxSpeed);
   frontTurn.setAcceleration(MaxAccel);
 
-  frontSlide.setEnablePin(24);
+  frontSlide.setEnablePin(31);
   frontSlide.setMaxSpeed(MaxSpeed);
   frontSlide.setAcceleration(MaxAccel);
 
-  backTurn.setEnablePin(25);
+  backTurn.setEnablePin(32);
   backTurn.setMaxSpeed(MaxSpeed);
   backTurn.setAcceleration(MaxAccel);
 
-  backSlide.setEnablePin(26);
+  backSlide.setEnablePin(33);
   backSlide.setMaxSpeed(MaxSpeed);
   backSlide.setAcceleration(MaxAccel);
 
-  leftTurn.setEnablePin(27);
+  leftTurn.setEnablePin(34);
   leftTurn.setMaxSpeed(MaxSpeed);
   leftTurn.setAcceleration(MaxAccel);
 
-  leftSlide.setEnablePin(28);
+  leftSlide.setEnablePin(35);
   leftSlide.setMaxSpeed(MaxSpeed);
   leftSlide.setAcceleration(MaxAccel);
 
-  rightTurn.setEnablePin(29);
+  rightTurn.setEnablePin(36);
   rightTurn.setMaxSpeed(MaxSpeed);
   rightTurn.setAcceleration(MaxAccel);
 
-  rightSlide.setEnablePin(30);
+  rightSlide.setEnablePin(37);
   rightSlide.setMaxSpeed(MaxSpeed);
   rightSlide.setAcceleration(MaxAccel);
 
@@ -70,7 +70,7 @@ void setup()
   pinMode(LeftSw, INPUT);
   pinMode(RightSw, INPUT);
 
-  initMotors();
+  //initMotors();
 
   Serial.begin(19200);
   Serial.print("ready");
@@ -80,6 +80,7 @@ void loop()
 {
   while (true)
   {
+	  nTotalStep = 0;
     if (Serial.available() > 0)
     {
       nTotalStep = Serial.available();
@@ -96,27 +97,35 @@ void loop()
       {
       case 'A':
         frontClockwise();
+        break;
 
       case 'B':
         frontAnticlockwise();
+        break;
 
       case 'C':
         backClockwise();
+        break;
 
       case 'D':
         backAnticlockwise();
+        break;
 
       case 'E':
         leftClockwise();
+        break;
 
       case 'F':
         leftAnticlockwise();
+        break;
 
       case 'G':
         rightClockwise();
+        break;
 
       case 'H':
         rightAnticlockwise();
+        break;
       }
     }
   }
