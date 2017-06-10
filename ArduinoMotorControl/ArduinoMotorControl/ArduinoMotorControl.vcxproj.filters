@@ -17,5 +17,9 @@
   <ItemGroup>
     <None Include="ArduinoMotorControl.ino" />
   </ItemGroup>
- 
+  <ItemGroup>
+    <ClInclude Include="__vm\.ArduinoMotorControl.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

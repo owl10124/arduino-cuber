@@ -83,9 +83,10 @@ void loop()
 	  nTotalStep = 0;
     if (Serial.available() > 0)
     {
+	  delay(100);
       nTotalStep = Serial.available();
 
-      for (int x = 0; x <= nTotalStep; x++)
+      for (int x = 0; x < nTotalStep; x++)
       {
         chSequence[x] = Serial.read();
       }
