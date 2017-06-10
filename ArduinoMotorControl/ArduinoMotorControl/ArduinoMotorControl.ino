@@ -12,53 +12,58 @@
 #define LeftSw 33
 #define RightSw 34
 
-// Define a stepper and the pins it will use
-AccelStepper frontTurn(1, 3, 14);
-AccelStepper frontSlide(1, 4, 15);
-AccelStepper backTurn(1, 5, 16);
-AccelStepper backSlide(1, 6, 17);
-AccelStepper leftTurn(1, 7, 18);
-AccelStepper leftSlide(1, 8, 19);
-AccelStepper rightTurn(1, 9, 20);
-AccelStepper rightSlide(1, 10, 21);
+#define SlideDist 4000
+#define MaxSpeed 50000
+#define MaxAccel 25000
+#define TurnDist 400
 
-char chSequence[30];
+// Define a stepper and the pins it will use
+AccelStepper frontTurn(1, 14, 3);
+AccelStepper frontSlide(1, 415, 4);
+AccelStepper backTurn(1, 16, 5);
+AccelStepper backSlide(1, 17, 6);
+AccelStepper leftTurn(1, 18, 7);
+AccelStepper leftSlide(1, 19, 8);
+AccelStepper rightTurn(1, 20, 9);
+AccelStepper rightSlide(1, 21, 10);
+
+char chSequence[40];
 int nCounter, nTotalStep;
 
 void setup()
 {
   // Change these to suit your stepper if you want
   frontTurn.setEnablePin(23);
-  frontTurn.setMaxSpeed(2000);
-  frontTurn.setAcceleration(2000);
+  frontTurn.setMaxSpeed(MaxSpeed);
+  frontTurn.setAcceleration(MaxAccel);
 
   frontSlide.setEnablePin(24);
-  frontSlide.setMaxSpeed(2000);
-  frontSlide.setAcceleration(2000);
+  frontSlide.setMaxSpeed(MaxSpeed);
+  frontSlide.setAcceleration(MaxAccel);
 
   backTurn.setEnablePin(25);
-  backTurn.setMaxSpeed(2000);
-  backTurn.setAcceleration(2000);
+  backTurn.setMaxSpeed(MaxSpeed);
+  backTurn.setAcceleration(MaxAccel);
 
   backSlide.setEnablePin(26);
-  backSlide.setMaxSpeed(2000);
-  backSlide.setAcceleration(2000);
+  backSlide.setMaxSpeed(MaxSpeed);
+  backSlide.setAcceleration(MaxAccel);
 
   leftTurn.setEnablePin(27);
-  leftTurn.setMaxSpeed(2000);
-  leftTurn.setAcceleration(2000);
+  leftTurn.setMaxSpeed(MaxSpeed);
+  leftTurn.setAcceleration(MaxAccel);
 
   leftSlide.setEnablePin(28);
-  leftSlide.setMaxSpeed(2000);
-  leftSlide.setAcceleration(2000);
+  leftSlide.setMaxSpeed(MaxSpeed);
+  leftSlide.setAcceleration(MaxAccel);
 
   rightTurn.setEnablePin(29);
-  rightTurn.setMaxSpeed(2000);
-  rightTurn.setAcceleration(2000);
+  rightTurn.setMaxSpeed(MaxSpeed);
+  rightTurn.setAcceleration(MaxAccel);
 
   rightSlide.setEnablePin(30);
-  rightSlide.setMaxSpeed(2000);
-  rightSlide.setAcceleration(2000);
+  rightSlide.setMaxSpeed(MaxSpeed);
+  rightSlide.setAcceleration(MaxAccel);
 
   pinMode(FrontSw, INPUT);
   pinMode(BackSw, INPUT);
@@ -154,16 +159,22 @@ void frontClockwise()
   int n = 0;
   do
   {
-    frontTurn.move(50);
+    frontTurn.move(TurnDist);
+	frontTurn.runToPosition();
     nCounter++;
     if (nCounter > nTotalStep)
       break;
     n++;
   } while (chSequence[nCounter] == 'A');
 
-  frontSlide.move(-200);
-  frontTurn.move(-50 * n);
-  frontSlide.move(200);
+  frontSlide.move(-SlideDist);
+  frontSlide.runToPosition();
+
+  frontTurn.move(-TurnDist * n);
+  frontTurn.runToPosition();
+
+  frontSlide.move(SlideDist);
+  frontSlide.runToPosition();
 }
 
 void frontAnticlockwise()
@@ -171,16 +182,22 @@ void frontAnticlockwise()
   int n = 0;
   do
   {
-    frontTurn.move(-50);
+    frontTurn.move(-TurnDist);
+	frontTurn.runToPosition();
     nCounter++;
     if (nCounter > nTotalStep)
       break;
     n++;
   } while (chSequence[nCounter] == 'B');
 
-  frontSlide.move(-200);
-  frontTurn.move(50 * n);
-  frontSlide.move(200);
+  frontSlide.move(-SlideDist);
+  frontSlide.runToPosition();
+
+  frontTurn.move(TurnDist * n);
+  frontTurn.runToPosition();
+
+  frontSlide.move(SlideDist);
+  frontSlide.runToPosition();
 }
 
 void backClockwise()
@@ -188,16 +205,22 @@ void backClockwise()
   int n = 0;
   do
   {
-    backTurn.move(50);
+    backTurn.move(TurnDist);
+	backTurn.runToPosition();
     nCounter++;
     if (nCounter > nTotalStep)
       break;
     n++;
   } while (chSequence[nCounter] == 'C');
 
-  backSlide.move(-200);
-  backTurn.move(-50 * n);
-  backSlide.move(200);
+  backSlide.move(-SlideDist);
+  backSlide.runToPosition();
+
+  backTurn.move(-TurnDist * n);
+  backTurn.runToPosition();
+
+  backSlide.move(SlideDist);
+  backSlide.runToPosition();
 }
 
 void backAnticlockwise()
@@ -205,16 +228,22 @@ void backAnticlockwise()
   int n = 0;
   do
   {
-    backTurn.move(-50);
+    backTurn.move(-TurnDist);
+	backTurn.runToPosition();
     nCounter++;
     if (nCounter > nTotalStep)
       break;
     n++;
   } while (chSequence[nCounter] == 'D');
 
-  backSlide.move(-200);
-  backTurn.move(50 * n);
-  backSlide.move(200);
+  backSlide.move(-SlideDist);
+  backSlide.runToPosition();
+
+  backTurn.move(TurnDist * n);
+  backTurn.runToPosition();
+
+  backSlide.move(SlideDist);
+  backSlide.runToPosition();
 }
 
 void leftClockwise()
@@ -222,16 +251,23 @@ void leftClockwise()
   int n = 0;
   do
   {
-    leftTurn.move(50);
+    leftTurn.move(TurnDist);
+	leftTurn.runToPosition();
+
     nCounter++;
     if (nCounter > nTotalStep)
       break;
     n++;
   } while (chSequence[nCounter] == 'E');
 
-  leftSlide.move(-200);
-  leftTurn.move(-50 * n);
-  leftSlide.move(200);
+  leftSlide.move(-SlideDist);
+  leftSlide.runToPosition();
+
+  leftTurn.move(-TurnDist * n);
+  leftTurn.runToPosition();
+
+  leftSlide.move(SlideDist);
+  leftSlide.runToPosition();
 }
 
 void leftAnticlockwise()
@@ -239,16 +275,22 @@ void leftAnticlockwise()
   int n = 0;
   do
   {
-    leftTurn.move(-50);
+    leftTurn.move(-TurnDist);
+	leftTurn.runToPosition();
     nCounter++;
     if (nCounter > nTotalStep)
       break;
     n++;
   } while (chSequence[nCounter] == 'F');
 
-  leftSlide.move(-200);
-  leftTurn.move(50 * n);
-  leftSlide.move(200);
+  leftSlide.move(-SlideDist);
+  leftSlide.runToPosition();
+
+  leftTurn.move(TurnDist * n);
+  leftTurn.runToPosition();
+
+  leftSlide.move(SlideDist);
+  leftSlide.runToPosition();
 }
 
 void rightClockwise()
@@ -256,16 +298,22 @@ void rightClockwise()
   int n = 0;
   do
   {
-    rightTurn.move(50);
+    rightTurn.move(TurnDist);
+	rightTurn.runToPosition();
     nCounter++;
     if (nCounter > nTotalStep)
       break;
     n++;
   } while (chSequence[nCounter] == 'G');
 
-  rightSlide.move(-200);
-  rightTurn.move(-50 * n);
-  rightSlide.move(200);
+  rightSlide.move(-SlideDist);
+  rightSlide.runToPosition();
+
+  rightTurn.move(-TurnDist * n);
+  rightTurn.runToPosition();
+
+  rightSlide.move(SlideDist);
+  rightSlide.runToPosition();
 }
 
 void rightAnticlockwise()
@@ -273,16 +321,22 @@ void rightAnticlockwise()
   int n = 0;
   do
   {
-    rightTurn.move(-50);
+    rightTurn.move(-TurnDist);
+	rightTurn.runToPosition();
     nCounter++;
     if (nCounter > nTotalStep)
       break;
     n++;
   } while (chSequence[nCounter] == 'H');
 
-  rightSlide.move(-200);
-  rightTurn.move(50 * n);
-  rightSlide.move(200);
+  rightSlide.move(-SlideDist);
+  rightSlide.runToPosition();
+
+  rightTurn.move(TurnDist * n);
+  rightTurn.runToPosition();
+
+  rightSlide.move(SlideDist);
+  rightSlide.runToPosition();
 }
 
 //void topClockwise()
