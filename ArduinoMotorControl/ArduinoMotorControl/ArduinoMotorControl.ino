@@ -8,10 +8,13 @@
 #include <Stepper.h>
 #include <AccelStepper.h>
 
-#define FrontSw 31
-#define BackSw 32
-#define LeftSw 33
-#define RightSw 34
+#define MotorCalSw 42
+#define StartSw 43
+
+#define FrontSw 38
+#define BackSw 39
+#define LeftSw 40
+#define RightSw 41
 
 #define FrontRst A0
 #define BackRst A1
@@ -116,6 +119,8 @@ void setup()
 	pinMode(LeftRst, INPUT);
 	pinMode(RightRst, INPUT);
 
+	pinMode(MotorCalSw, INPUT);
+	pinMode(StartSw, INPUT);
 
 	while (bHandshake == false)
 	{
@@ -148,7 +153,13 @@ void setup()
 
 void loop()
 {
+	while (digitalRead(StartSw) == LOW)
+	{
+		if (digitalRead(MotorCalSw) == HIGH)
+			initMotors();
+	}
 
+	ScanCube();
 
 	while (true)
 	{
@@ -231,7 +242,7 @@ void loop()
 //	}
 //}
 
-int ScanCube()
+void ScanCube()
 {
 	Serial.println("init_scan");
 	delay(200);
@@ -432,6 +443,7 @@ int ScanCube()
 		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
 		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 	}
+	return;
 }
 
 int CheckCommand()
