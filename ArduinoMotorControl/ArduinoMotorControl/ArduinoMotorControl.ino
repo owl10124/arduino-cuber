@@ -4,6 +4,7 @@
  Author:  LINJING
 */
 
+#include <string.h>
 #include <Stepper.h>
 #include <AccelStepper.h>
 
@@ -53,7 +54,11 @@ AccelStepper *pmotor[8];
 
 char chSequence[40];
 char chSerial[1000];
-int nCounter, nTotalStep;
+char chMsg[1000];
+int nCounter, nTotalStep, nTotalChar;
+
+char* pchGO = "GO";
+char* pchDoneSide = "done_side";
 
 void setup()
 {
@@ -111,23 +116,29 @@ void setup()
 	pinMode(LeftRst, INPUT);
 	pinMode(RightRst, INPUT);
 
+
 	while (bHandshake == false)
 	{
 		Serial.begin(28800);
-		Serial.print("ready");
+		Serial.println("ready");
 		delay(1000);
 
 		if (Serial.available() > 0)
 		{
 			delay(150);
-			nTotalStep = Serial.available();
+			nTotalChar = Serial.available();
+			if (nTotalChar > 999)
+				nTotalChar = 999;
 
-			for (int x = 0; x < nTotalStep; x++)
+			int x;
+			for (x = 0; x < nTotalChar; x++)
 			{
 				chSerial[x] = Serial.read();
 			}
+			chSerial[x] = 0x00;
 
-			if (chSerial == "pi_is_ready")
+			char* pchPiIsReady = "pi_is_ready";
+			if (strcmp(chSerial, pchPiIsReady)==0)
 				bHandshake = true;
 		}
 	}
@@ -212,9 +223,215 @@ void loop()
 	}
 }
 
+//void ClearCharArray(char &chArray[])
+//{
+//	for (int w = 0; w < sizeof(chArray); w++)
+//	{
+//		chArray[w] = ' ';
+//	}
+//}
+
 int ScanCube()
 {
+	Serial.println("init_scan");
+	delay(200);
 
+	int nSides = 6;
+	bool bSideDone = false;
+
+	if (Serial.available() > 0)
+	{
+		delay(150);
+		nTotalChar = Serial.available();
+
+		int x;
+		for (x = 0; x < nTotalChar; x++)
+		{
+			chSerial[x] = Serial.read();
+		}
+
+		chSerial[x] = 0x00;
+	}
+
+
+	if (strcmp(chSerial, pchGO) == 0)
+	{
+		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+
+		Serial.println("scan");
+
+		int x;
+
+		while (bSideDone == false)
+		{
+			if (Serial.available() > 0)
+			{
+				delay(150);
+				nTotalChar = Serial.available();
+
+				for (x = 0; x < nTotalChar; x++)
+				{
+					chSerial[x] = Serial.read();
+				}
+
+				chSerial[x] = 0x00;
+
+				if (strcmp(chSerial, pchDoneSide) == 0)
+				{
+					bSideDone = true;
+					nSides -= 1;
+				}
+			}
+		}
+
+		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist * 2);
+
+		Serial.println("scan");
+
+		while (bSideDone == false)
+		{
+			if (Serial.available() > 0)
+			{
+				delay(150);
+				nTotalChar = Serial.available();
+
+				for (x = 0; x < nTotalChar; x++)
+				{
+					chSerial[x] = Serial.read();
+				}
+
+				chSerial[x] = 0x00;
+
+				if (strcmp(chSerial, pchDoneSide) == 0)
+				{
+					bSideDone = true;
+					nSides -= 1;
+				}
+			}
+		}
+
+		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
+
+		Serial.println("scan");
+
+		while (bSideDone == false)
+		{
+			if (Serial.available() > 0)
+			{
+				delay(150);
+				nTotalChar = Serial.available();
+
+				for (x = 0; x < nTotalChar; x++)
+				{
+					chSerial[x] = Serial.read();
+				}
+
+				chSerial[x] = 0x00;
+
+				if (strcmp(chSerial, pchDoneSide) == 0)
+				{
+					bSideDone = true;
+					nSides -= 1;
+				}
+			}
+		}
+
+		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist * 2);
+
+		Serial.println("scan");
+
+		while (bSideDone == false)
+		{
+			if (Serial.available() > 0)
+			{
+				delay(150);
+				nTotalChar = Serial.available();
+
+				for (x = 0; x < nTotalChar; x++)
+				{
+					chSerial[x] = Serial.read();
+				}
+
+				chSerial[x] = 0x00;
+
+				if (strcmp(chSerial, pchDoneSide) == 0)
+				{
+					bSideDone = true;
+					nSides -= 1;
+				}
+			}
+		}
+
+		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
+		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
+		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
+		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+
+		Serial.println("scan");
+
+		while (bSideDone == false)
+		{
+			if (Serial.available() > 0)
+			{
+				delay(150);
+				nTotalChar = Serial.available();
+
+				for (x = 0; x < nTotalChar; x++)
+				{
+					chSerial[x] = Serial.read();
+				}
+
+				chSerial[x] = 0x00;
+
+				if (strcmp(chSerial, pchDoneSide) == 0)
+				{
+					bSideDone = true;
+					nSides -= 1;
+				}
+			}
+		}
+
+		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist * 2);
+
+		Serial.println("scan");
+
+		while (bSideDone == false)
+		{
+			if (Serial.available() > 0)
+			{
+				delay(150);
+				nTotalChar = Serial.available();
+
+				for (x = 0; x < nTotalChar; x++)
+				{
+					chSerial[x] = Serial.read();
+				}
+
+				chSerial[x] = 0x00;
+
+				if (strcmp(chSerial, pchDoneSide) == 0)
+				{
+					bSideDone = true;
+					nSides -= 1;
+				}
+			}
+		}
+
+		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
+		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
+		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
+	}
 }
 
 int CheckCommand()
