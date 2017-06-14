@@ -1,7 +1,7 @@
 /*
  Name:    ArduinoMotorControl.ino
  Created: 6/8/2017 9:12:15 PM
- Author:  LINJING
+ Author:  LINYICHENG
 */
 
 #include <string.h>
@@ -44,6 +44,8 @@
 										
 
 // Define a stepper and the pins it will use
+// first number specifies the state, in this case 1 means driver state
+//second number is the PUL pin the third one is the DIR pin
 AccelStepper frontTurn(1, 22, 3);
 AccelStepper frontSlide(1, 23, 4);
 AccelStepper backTurn(1, 24, 5);
@@ -60,6 +62,7 @@ char chSerial[1000];
 char chMsg[1000];
 int nCounter, nTotalStep, nTotalChar;
 
+// this initializes the chars used for serial protocol
 char* pchGO = "GO";
 char* pchDoneSide = "done_side";
 
@@ -67,6 +70,8 @@ void setup()
 {
 	bool bHandshake = false;
 
+	// this initializes the array of stepper motors, for easy 
+	// reference in the TurnTwoMotors and SlideTwoMotors functions
 	pmotor[FRONTTURN] = &frontTurn;
 	pmotor[FRONTSLIDE] = &frontSlide;
 	pmotor[BACKTURN] = &backTurn;
@@ -122,6 +127,7 @@ void setup()
 	pinMode(MotorCalSw, INPUT);
 	pinMode(StartSw, INPUT);
 
+	// initiates a handshake with the raspberry pi
 	while (bHandshake == false)
 	{
 		Serial.begin(28800);
@@ -148,21 +154,25 @@ void setup()
 		}
 	}
 
+	// initializes the motors to correct positions
 	initMotors();
 }
 
 void loop()
 {
+	// waits for trigger
 	while (digitalRead(StartSw) == LOW)
 	{
 		if (digitalRead(MotorCalSw) == HIGH)
 			initMotors();
 	}
 
+	// communicates with the raspberry pi to scan the cube
 	ScanCube();
 
 	while (true)
 	{
+		// gets instructons from the raspberry pi
 		nTotalStep = 0;
 		if (Serial.available() > 0)
 		{
@@ -175,9 +185,11 @@ void loop()
 			}
 		}
 
+		// checks for error in the transmitted commands
 		if (CheckCommand() == 1)
 			break;
 
+		// executes the commands
 		for (nCounter = 0; nCounter < nTotalStep;)
 		{
 			switch (chSequence[nCounter])
@@ -244,12 +256,14 @@ void loop()
 
 void ScanCube()
 {
+	// tells the pi to start scanning
 	Serial.println("init_scan");
 	delay(200);
 
 	int nSides = 6;
 	bool bSideDone = false;
 
+	// check if pi confirms scan
 	if (Serial.available() > 0)
 	{
 		delay(150);
@@ -274,6 +288,10 @@ void ScanCube()
 
 		int x;
 
+		// this series of functions essentially requests an image to be taken
+		// and the waits for the pi to confirm the image was successfully taken
+		// then the arduino proceeds to move the next face to the pi cam for 
+		// the image to be taken.
 		while (bSideDone == false)
 		{
 			if (Serial.available() > 0)
@@ -448,6 +466,7 @@ void ScanCube()
 
 int CheckCommand()
 {
+	// checks for errors in the command by cycling it through a loop
 	for (nCounter = 0; nCounter < nTotalStep;)
 	{
 		switch (chSequence[nCounter])
@@ -501,6 +520,8 @@ int CheckCommand()
 
 void initMotors()
 {
+	// initializes the bottom four slider motors
+	// with input from the limit switches
 	frontSlide.move(100000000);
 	while (digitalRead(FrontSw) == LOW)
 	{
@@ -529,6 +550,9 @@ void initMotors()
 	}
 	rightSlide.setCurrentPosition(0);
 
+	// resets the position of the four turning
+	// motors on top using te data gathered
+	// from the hall effect sensors
 	frontTurn.move(FullTurn);
 	while (analogRead(FrontRst) >= TrigPoint)
 	{
@@ -556,6 +580,7 @@ void initMotors()
 		rightTurn.run();
 	}
 	rightTurn.setCurrentPosition(0);
+
   //frontSlide.move(CalibrationDist);
   //frontSlide.runToPosition();
   //while (digitalRead(FrontSw) == LOW)
@@ -589,6 +614,9 @@ void initMotors()
   //rightSlide.move(SlideDist);
 }
 
+// twelve different functions below executes the solving 
+// sequence by turing the faces of cubes. the function
+// also takes in account the next move to increase efficiency.
 void frontClockwise()
 {
   int n = 0;
@@ -882,6 +910,8 @@ void bottomAnticlockwise()
 	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
 }
 
+// these two functions are made for convenience in programming the
+// top two functions, which use these extensively.
 void SlideTwoMotors(byte Motor1, byte Motor2, byte Direction, int nSteps)
 {
 	if (Motor1 == Motor2)
