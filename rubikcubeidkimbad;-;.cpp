@@ -37,7 +37,7 @@ void back_turn_ac(){
     back_turn_c();
     back_turn_c();
     back_turn_c();
-
+	//REALLY 
 }
 void down_turn_c(){
     char temp = apple[21];
@@ -71,6 +71,7 @@ void down_turn_ac(){
     down_turn_c();
     down_turn_c();
     down_turn_c();
+	//SERIOUSLY, I EXPECTED MORE FROM YOU
 }
 void left_turn_c(){
 
@@ -106,6 +107,7 @@ void left_turn_ac(){
     left_turn_c();
     left_turn_c();
     left_turn_c();
+	// I GIVE UP
 }
 void up_turn_c(){
     char temp = apple[0];
@@ -138,7 +140,7 @@ void up_turn_ac(){
     up_turn_c();
     up_turn_c();
     up_turn_c();
-
+	// I AUTHORISE YOU TO GET A CUBE ALGORITMN FORM SOMEWHERE
 }
 void right_turn_c(){
   char temp = apple[27];
@@ -172,7 +174,7 @@ void right_turn_ac(){
     right_turn_c();
     right_turn_c();
     right_turn_c();
-
+	// BCOS THIS IS ABSOLUTE RUBBISH
 }
 void front_turn_c(){
   char temp = apple[9];
@@ -206,7 +208,7 @@ void front_turn_ac(){
     front_turn_c();
     front_turn_c();
     front_turn_c();
-
+	// JUST FRIGGIN GET A CODE ALREADY
 
 }
 void print_faces(){
