@@ -581,6 +581,38 @@ void initMotors()
 	}
 	rightTurn.setCurrentPosition(0);
 
+	// Change these to suit your stepper if you want
+	frontTurn.setEnablePin(30);
+	frontTurn.setMaxSpeed(MaxSpeed);
+	frontTurn.setAcceleration(MaxAccel);
+
+	frontSlide.setEnablePin(31);
+	frontSlide.setMaxSpeed(MaxSpeed);
+	frontSlide.setAcceleration(MaxAccel);
+
+	backTurn.setEnablePin(32);
+	backTurn.setMaxSpeed(MaxSpeed);
+	backTurn.setAcceleration(MaxAccel);
+
+	backSlide.setEnablePin(33);
+	backSlide.setMaxSpeed(MaxSpeed);
+	backSlide.setAcceleration(MaxAccel);
+
+	leftTurn.setEnablePin(34);
+	leftTurn.setMaxSpeed(MaxSpeed);
+	leftTurn.setAcceleration(MaxAccel);
+
+	leftSlide.setEnablePin(35);
+	leftSlide.setMaxSpeed(MaxSpeed);
+	leftSlide.setAcceleration(MaxAccel);
+
+	rightTurn.setEnablePin(36);
+	rightTurn.setMaxSpeed(MaxSpeed);
+	rightTurn.setAcceleration(MaxAccel);
+
+	rightSlide.setEnablePin(37);
+	rightSlide.setMaxSpeed(MaxSpeed);
+	rightSlide.setAcceleration(MaxAccel);
   //frontSlide.move(CalibrationDist);
   //frontSlide.runToPosition();
   //while (digitalRead(FrontSw) == LOW)
