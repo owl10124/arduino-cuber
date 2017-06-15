@@ -2,6 +2,7 @@
 #include <ctime>
 #include <iostream>
 #include <fstream>
+#include <stringstream>
 #include <raspicam/raspicam_cv.h>
 using namespace std;
 
@@ -9,6 +10,7 @@ bool ready = false;
 bool inserted = false;
 bool solving = false;
 string path = "/dev/ttyUSB0"; //idek work it out yourself
+string serial;
 
 void long_press()
 {
@@ -31,10 +33,32 @@ void short_press()
     }
 }
 
+string readFile(fstream strm)
+{
+    string buffer;
+    sstream result;
+    if (strm.is_open())
+    {
+        while (strm)
+        {
+            getline(strm, buffer);
+            result<<buffer;
+            buffer="";
+        }
+        return result;
+    }
+    else
+    {
+        return "";
+    }
+}
+
 int main()
 {
-    fstream ardFile;
+    fstream sFile(path, fstream::in|fstream::out);
     raspicam::RaspiCam Camera;
+
+    sFile.seekp(1);
 
     //camera stuff
     cout<<"Opening camera\n";
@@ -44,9 +68,17 @@ int main()
     }
     
     //establish serial connection
-    ardFile = fstream::open(path, fstream::in|fstream::out)
+    sFile<<"a";
+    sFile.close();
+    sFile.open();
+    sFile>>serial;
+    while ()
+
+
     while (true)
     {
         
     }
+
+    return 0;
 }
