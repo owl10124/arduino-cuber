@@ -10,6 +10,7 @@
 
 #define MotorCalSw 42
 #define StartSw 43
+#define HoldCubeSw 44
 
 #define FrontSw 38
 #define BackSw 39
@@ -61,6 +62,13 @@ char chSequence[40];
 char chSerial[1000];
 char chMsg[1000];
 int nCounter, nTotalStep, nTotalChar;
+
+int StartSwState = 0;         // current state of the Start button
+int lastStartSwState = 0;
+int CalSwState = 0;         // current state of the Motor Calibration button
+int lastCalSwState = 0;
+int HoldSwState = 0;         // current state of the Hold Cube button
+int lastHoldSwState = 0;
 
 // this initializes the chars used for serial protocol
 char* pchGO = "GO";
@@ -126,6 +134,7 @@ void setup()
 
 	pinMode(MotorCalSw, INPUT);
 	pinMode(StartSw, INPUT);
+	pinMode(HoldCubeSw, INPUT);
 
 	// initiates a handshake with the raspberry pi
 	while (bHandshake == false)
@@ -161,39 +170,136 @@ void setup()
 void loop()
 {
 	// waits for trigger
-	while (digitalRead(StartSw) == LOW)
+	//while (digitalRead(StartSw) == LOW)
+	//{
+	//	if (digitalRead(MotorCalSw) == HIGH)
+	//		initMotors();
+	//}
+
+	bool bStart = false;
+	bool bCalMotors = false;
+	bool bHoldCube = false;
+
+	// read the pushbutton input pin:
+	StartSwState = digitalRead(StartSw);
+
+	// compare the buttonState to its previous state
+	if (StartSwState != lastStartSwState) 
 	{
-		if (digitalRead(MotorCalSw) == HIGH)
-			initMotors();
+		// if the state has changed, increment the counter
+		if (StartSwState == HIGH) 
+		{
+			// if the current state is HIGH then the button
+			// wend from off to on:
+			bStart = false;
+		}
+		else if (StartSwState == LOW)
+		{
+			bStart = true;
+		}
+		// Delay a little bit to avoid bouncing
+		delay(30);
+	}
+	// save the current state as the last state,
+	//for next time through the loop
+	lastStartSwState = StartSwState;
+
+	if (bStart == false)
+	{
+		// read the pushbutton input pin:
+		CalSwState = digitalRead(MotorCalSw);
+
+		// compare the buttonState to its previous state
+		if (CalSwState != lastCalSwState)
+		{
+			// if the state has changed, increment the counter
+			if (CalSwState == HIGH)
+			{
+				// if the current state is HIGH then the button
+				// wend from off to on:
+				bStart = false;
+				bCalMotors = false;
+			}
+			else if (CalSwState == LOW)
+			{
+				bCalMotors = true;
+				initMotors;
+				bCalMotors = false;
+			}
+			// Delay a little bit to avoid bouncing
+			delay(30);
+		}
+		// save the current state as the last state,
+		//for next time through the loop
+		lastCalSwState = CalSwState;
 	}
 
-	// communicates with the raspberry pi to scan the cube
-	ScanCube();
-
-	while (true)
+	if (bCalMotors == false && bStart == false)
 	{
-		// gets instructons from the raspberry pi
-		nTotalStep = 0;
-		if (Serial.available() > 0)
-		{
-			delay(150);
-			nTotalStep = Serial.available();
+		// read the pushbutton input pin:
+		HoldSwState = digitalRead(HoldCubeSw);
 
-			for (int x = 0; x < nTotalStep; x++)
+		// compare the buttonState to its previous state
+		if (HoldSwState != lastHoldSwState)
+		{
+			// if the state has changed, increment the counter
+			if (HoldSwState == HIGH)
 			{
-				chSequence[x] = Serial.read();
+				// if the current state is HIGH then the button
+				// wend from off to on:
+				bStart = false;
+				bCalMotors = false;
 			}
-		}
-
-		// checks for error in the transmitted commands
-		if (CheckCommand() == 1)
-			break;
-
-		// executes the commands
-		for (nCounter = 0; nCounter < nTotalStep;)
-		{
-			switch (chSequence[nCounter])
+			else if (HoldSwState == LOW)
 			{
+				if (bHoldCube == false)
+				{
+					HoldCube(true);
+					bHoldCube = true;
+				}
+				else if (bHoldCube == true)
+				{
+					HoldCube(false);
+					bHoldCube = false;
+				}
+			}
+			// Delay a little bit to avoid bouncing
+			delay(30);
+		}
+		// save the current state as the last state,
+		//for next time through the loop
+		lastHoldSwState = CalSwState;
+	}
+
+	if (bStart == true)
+	{
+		// communicates with the raspberry pi to scan the cube
+		ScanCube();
+
+		while (bStart = true)
+		{
+			// gets instructons from the raspberry pi
+			nTotalStep = 0;
+			if (Serial.available() > 0)
+			{
+				delay(150);
+				nTotalStep = Serial.available();
+
+				for (int x = 0; x < nTotalStep; x++)
+				{
+					chSequence[x] = Serial.read();
+				}
+			}
+
+			// checks for error in the transmitted commands
+			if (CheckCommand() == 1)
+				break;
+
+			// executes the commands
+			for (nCounter = 0; nCounter < nTotalStep;)
+			{
+				switch (chSequence[nCounter])
+				{
 				case 'A':
 					topClockwise();
 					break;
@@ -241,7 +347,11 @@ void loop()
 				case 'L':
 					rightAnticlockwise();
 					break;
+				}
 			}
+
+			HoldCube(false);
+			bStart = false;
 		}
 	}
 }
@@ -253,6 +363,32 @@ void loop()
 //		chArray[w] = ' ';
 //	}
 //}
+
+void HoldCube(bool Hold)
+{
+	if (Hold == false)
+	{
+		frontSlide.move(-SlideDist);
+		backSlide.move(-SlideDist);
+		leftSlide.move(-SlideDist);
+		rightSlide.move(-SlideDist);
+	}
+	else if (Hold == true)
+	{
+		frontSlide.move(SlideDist);
+		backSlide.move(SlideDist);
+		leftSlide.move(SlideDist);
+		rightSlide.move(SlideDist);
+	}
+
+	while (frontSlide.distanceToGo() > 0 || backSlide.distanceToGo() > 0 || leftSlide.distanceToGo() > 0 || rightSlide.distanceToGo() > 0)
+	{
+		frontSlide.run();
+		backSlide.run();
+		leftSlide.run();
+		rightSlide.run();
+	}
+}
 
 void ScanCube()
 {
