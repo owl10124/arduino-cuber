@@ -22,14 +22,14 @@
 #define LeftRst A2
 #define RightRst A3
 
-#define SlideDist 4000
-#define MaxSpeed 50000
-#define MaxAccel 25000
-#define TurnDist 400
-
 #define CalibrationDist -20000
 #define FullTurn 1600
 #define TrigPoint 512
+
+#define SlideDist FullTurn/4 * 10
+#define MaxSpeed 50000
+#define MaxAccel 25000
+#define TurnDist FullTurn/4
 
 #define FRONTTURN 0
 #define FRONTSLIDE 1
@@ -39,10 +39,13 @@
 #define LEFTSLIDE 5
 #define RIGHTTURN 6
 #define RIGHTSLIDE 7
+#define TOTAL_MOTORS 8
 
 #define GoClockwise 0
 #define GoAntiClockwise 1
-										
+
+#define MAX_TURN_STEPS 40
+#define MAX_SERIAL_LENGTH 1000
 
 // Define a stepper and the pins it will use
 // first number specifies the state, in this case 1 means driver state
@@ -58,9 +61,8 @@ AccelStepper rightSlide(1, 29, 10);
 
 AccelStepper *pmotor[8];
 
-char chSequence[40];
-char chSerial[1000];
-char chMsg[1000];
+char chSequence[MAX_TURN_STEPS];
+char chSerial[MAX_SERIAL_LENGTH + 1];		// Extra one char for terminator of string 0x00
 int nCounter, nTotalStep, nTotalChar;
 
 int StartSwState = 0;         // current state of the Start button
@@ -69,6 +71,8 @@ int CalSwState = 0;         // current state of the Motor Calibration button
 int lastCalSwState = 0;
 int HoldSwState = 0;         // current state of the Hold Cube button
 int lastHoldSwState = 0;
+
+bool bHoldCube = false;		// false menas currently cube is not hold on the jig
 
 // this initializes the chars used for serial protocol
 char* pchGO = "GO";
@@ -136,10 +140,13 @@ void setup()
 	pinMode(StartSw, INPUT);
 	pinMode(HoldCubeSw, INPUT);
 
+	Serial.begin(28800);	// Set serial port communication baund rate
+
+#if 0 
+
 	// initiates a handshake with the raspberry pi
 	while (bHandshake == false)
 	{
-		Serial.begin(28800);
 		Serial.println("ready");
 		delay(1000);
 
@@ -147,8 +154,8 @@ void setup()
 		{
 			delay(150);
 			nTotalChar = Serial.available();
-			if (nTotalChar > 999)
-				nTotalChar = 999;
+			if (nTotalChar > MAX_SERIAL_LENGTH)
+				nTotalChar = MAX_SERIAL_LENGTH;
 
 			int x;
 			for (x = 0; x < nTotalChar; x++)
@@ -165,6 +172,8 @@ void setup()
 
 	// initializes the motors to correct positions
 	initMotors();
+#endif
+
 }
 
 void loop()
@@ -177,32 +186,37 @@ void loop()
 	//}
 
 	bool bStart = false;
+
+#if 0
+
 	bool bCalMotors = false;
-	bool bHoldCube = false;
 
 	// read the pushbutton input pin:
-	StartSwState = digitalRead(StartSw);
-
-	// compare the buttonState to its previous state
-	if (StartSwState != lastStartSwState) 
+	if (bHoldCube == true)
 	{
-		// if the state has changed, increment the counter
-		if (StartSwState == HIGH) 
+		StartSwState = digitalRead(StartSw);
+
+		// compare the buttonState to its previous state
+		if (StartSwState != lastStartSwState)
 		{
-			// if the current state is HIGH then the button
-			// wend from off to on:
-			bStart = false;
+			// if the state has changed, increment the counter
+			if (StartSwState == HIGH)
+			{
+				// if the current state is HIGH then the button
+				// wend from off to on:
+				bStart = false;
+			}
+			else if (StartSwState == LOW)
+			{
+				bStart = true;
+			}
+			// Delay a little bit to avoid bouncing
+			delay(30);
 		}
-		else if (StartSwState == LOW)
-		{
-			bStart = true;
-		}
-		// Delay a little bit to avoid bouncing
-		delay(30);
+		// save the current state as the last state,
+		//for next time through the loop
+		lastStartSwState = StartSwState;
 	}
-	// save the current state as the last state,
-	//for next time through the loop
-	lastStartSwState = StartSwState;
 
 	if (bStart == false)
 	{
@@ -223,7 +237,7 @@ void loop()
 			else if (CalSwState == LOW)
 			{
 				bCalMotors = true;
-				initMotors;
+				initMotors();
 				bCalMotors = false;
 			}
 			// Delay a little bit to avoid bouncing
@@ -257,10 +271,10 @@ void loop()
 					HoldCube(true);
 					bHoldCube = true;
 				}
-				else if (bHoldCube == true)
+				else if (bHoldCube == true)		// If currently cube is hold, then release it
 				{
-					HoldCube(false);
-					bHoldCube = false;
+					HoldCube(false);			// Release cube
+					bHoldCube = false;			// set status after release the cube
 				}
 			}
 			// Delay a little bit to avoid bouncing
@@ -271,11 +285,18 @@ void loop()
 		lastHoldSwState = CalSwState;
 	}
 
-	if (bStart == true)
+	if (bStart == true && bHoldCube == true)
 	{
 		// communicates with the raspberry pi to scan the cube
-		ScanCube();
+		//ScanCube();
 
+		while (bStart = true)
+
+#else
+	bStart = true;
+	if (1)
+	{
+#endif
 		while (bStart = true)
 		{
 			// gets instructons from the raspberry pi
@@ -298,6 +319,7 @@ void loop()
 			// executes the commands
 			for (nCounter = 0; nCounter < nTotalStep;)
 			{
+				Serial.println(chSequence[nCounter]);
 				switch (chSequence[nCounter])
 				{
 				case 'A':
@@ -350,11 +372,15 @@ void loop()
 				}
 			}
 
+#if 0
 			HoldCube(false);
+			bHoldCube = false;
 			bStart = false;
+#endif 
 		}
 	}
 }
+
 
 //void ClearCharArray(char &chArray[])
 //{
@@ -404,6 +430,8 @@ void ScanCube()
 	{
 		delay(150);
 		nTotalChar = Serial.available();
+		if (nTotalChar > MAX_SERIAL_LENGTH)
+			nTotalChar = MAX_SERIAL_LENGTH;
 
 		int x;
 		for (x = 0; x < nTotalChar; x++)
@@ -434,6 +462,8 @@ void ScanCube()
 			{
 				delay(150);
 				nTotalChar = Serial.available();
+				if (nTotalChar > MAX_SERIAL_LENGTH)
+					nTotalChar = MAX_SERIAL_LENGTH;
 
 				for (x = 0; x < nTotalChar; x++)
 				{
@@ -460,6 +490,8 @@ void ScanCube()
 			{
 				delay(150);
 				nTotalChar = Serial.available();
+				if (nTotalChar > MAX_SERIAL_LENGTH)
+					nTotalChar = MAX_SERIAL_LENGTH;
 
 				for (x = 0; x < nTotalChar; x++)
 				{
@@ -489,6 +521,8 @@ void ScanCube()
 			{
 				delay(150);
 				nTotalChar = Serial.available();
+				if (nTotalChar > MAX_SERIAL_LENGTH)
+					nTotalChar = MAX_SERIAL_LENGTH;
 
 				for (x = 0; x < nTotalChar; x++)
 				{
@@ -515,6 +549,8 @@ void ScanCube()
 			{
 				delay(150);
 				nTotalChar = Serial.available();
+				if (nTotalChar > MAX_SERIAL_LENGTH)
+					nTotalChar = MAX_SERIAL_LENGTH;
 
 				for (x = 0; x < nTotalChar; x++)
 				{
@@ -546,6 +582,8 @@ void ScanCube()
 			{
 				delay(150);
 				nTotalChar = Serial.available();
+				if (nTotalChar > MAX_SERIAL_LENGTH)
+					nTotalChar = MAX_SERIAL_LENGTH;
 
 				for (x = 0; x < nTotalChar; x++)
 				{
@@ -572,6 +610,8 @@ void ScanCube()
 			{
 				delay(150);
 				nTotalChar = Serial.available();
+				if (nTotalChar > MAX_SERIAL_LENGTH)
+					nTotalChar = MAX_SERIAL_LENGTH;
 
 				for (x = 0; x < nTotalChar; x++)
 				{
@@ -603,8 +643,16 @@ void ScanCube()
 int CheckCommand()
 {
 	// checks for errors in the command by cycling it through a loop
-	for (nCounter = 0; nCounter < nTotalStep;)
+	for (nCounter = 0; nCounter < nTotalStep;nCounter++)
 	{
+		if ((chSequence[nCounter] < 0x41) || (chSequence[nCounter] > 0x4C)) // 'A' = 0x41, 'L' = 0x4C
+		{
+			Serial.println("redo");
+			Serial.println("Bad Command Sequence Given");
+			Serial.println("Error: Aborting");
+			return 1;
+		}
+#if 0
 		switch (chSequence[nCounter])
 		{
 		case 'A':
@@ -649,8 +697,9 @@ int CheckCommand()
 			Serial.println("Error: Aborting");
 			return 1;
 		}
+#endif
 	}
-	
+
 	return 0;
 }
 
@@ -787,71 +836,74 @@ void initMotors()
 // also takes in account the next move to increase efficiency.
 void frontClockwise()
 {
-  int n = 0;
-  do
-  {
-    frontTurn.move(-TurnDist);
+	int n = 0;
+	do
+	{
+		frontTurn.move(-TurnDist);
+		frontTurn.runToPosition();
+		nCounter++;
+		if (nCounter > nTotalStep)
+			break;
+		n++;
+	} while (chSequence[nCounter] == 'E');
+
+	frontSlide.move(-SlideDist);
+	frontSlide.runToPosition();
+
+	if (n != 2)
+		frontTurn.move(TurnDist * n);
 	frontTurn.runToPosition();
-    nCounter++;
-    if (nCounter > nTotalStep)
-      break;
-    n++;
-  } while (chSequence[nCounter] == 'E');
 
-  frontSlide.move(-SlideDist);
-  frontSlide.runToPosition();
-
-  frontTurn.move(TurnDist * n);
-  frontTurn.runToPosition();
-
-  frontSlide.move(SlideDist);
-  frontSlide.runToPosition();
+	frontSlide.move(SlideDist);
+	frontSlide.runToPosition();
 }
 
 void frontAnticlockwise()
 {
-  int n = 0;
-  do
-  {
-    frontTurn.move(TurnDist);
+	int n = 0;
+	do
+	{
+		frontTurn.move(TurnDist);
+		frontTurn.runToPosition();
+		nCounter++;
+		if (nCounter > nTotalStep)
+			break;
+		n++;
+	} while (chSequence[nCounter] == 'F');
+
+	frontSlide.move(-SlideDist);
+	frontSlide.runToPosition();
+
+	if (n != 2)
+		frontTurn.move(-TurnDist * n);
 	frontTurn.runToPosition();
-    nCounter++;
-    if (nCounter > nTotalStep)
-      break;
-    n++;
-  } while (chSequence[nCounter] == 'F');
 
-  frontSlide.move(-SlideDist);
-  frontSlide.runToPosition();
-
-  frontTurn.move(-TurnDist * n);
-  frontTurn.runToPosition();
-
-  frontSlide.move(SlideDist);
-  frontSlide.runToPosition();
+	frontSlide.move(SlideDist);
+	frontSlide.runToPosition();
 }
 
 void backClockwise()
 {
-  int n = 0;
-  do
-  {
-    backTurn.move(-TurnDist);
+	int n = 0;
+	do
+	{
+		backTurn.move(-TurnDist);
+		backTurn.runToPosition();
+		nCounter++;
+		if (nCounter > nTotalStep)
+			break;
+		n++;
+	} while (chSequence[nCounter] == 'G');
+
+	backSlide.move(-SlideDist);
+	backSlide.runToPosition();
+
+	if (n != 2)
+		backTurn.move(TurnDist * n);
 	backTurn.runToPosition();
-    nCounter++;
-    if (nCounter > nTotalStep)
-      break;
-    n++;
-  } while (chSequence[nCounter] == 'G');
 
-  backSlide.move(-SlideDist);
-  backSlide.runToPosition();
-
-  backTurn.move(TurnDist * n);
-  backTurn.runToPosition();
-
-  backSlide.move(SlideDist);
-  backSlide.runToPosition();
+	backSlide.move(SlideDist);
+	backSlide.runToPosition();
 }
 
 void backAnticlockwise()
@@ -870,7 +922,8 @@ void backAnticlockwise()
   backSlide.move(-SlideDist);
   backSlide.runToPosition();
 
-  backTurn.move(-TurnDist * n);
+  if (n != 2)
+	backTurn.move(-TurnDist * n);
   backTurn.runToPosition();
 
   backSlide.move(SlideDist);
@@ -879,95 +932,99 @@ void backAnticlockwise()
 
 void leftClockwise()
 {
-  int n = 0;
-  do
-  {
-    leftTurn.move(-TurnDist);
+	int n = 0;
+	do
+	{
+		leftTurn.move(-TurnDist);
+		leftTurn.runToPosition();
+
+		nCounter++;
+		if (nCounter > nTotalStep)
+			break;
+		n++;
+	} while (chSequence[nCounter] == 'I');
+
+	leftSlide.move(-SlideDist);
+	leftSlide.runToPosition();
+
+	if (n != 2)
+		leftTurn.move(TurnDist * n);
 	leftTurn.runToPosition();
 
-    nCounter++;
-    if (nCounter > nTotalStep)
-      break;
-    n++;
-  } while (chSequence[nCounter] == 'I');
-
-  leftSlide.move(-SlideDist);
-  leftSlide.runToPosition();
-
-  leftTurn.move(TurnDist * n);
-  leftTurn.runToPosition();
-
-  leftSlide.move(SlideDist);
-  leftSlide.runToPosition();
+	leftSlide.move(SlideDist);
+	leftSlide.runToPosition();
 }
 
 void leftAnticlockwise()
 {
-  int n = 0;
-  do
-  {
-    leftTurn.move(TurnDist);
+	int n = 0;
+	do
+	{
+		leftTurn.move(TurnDist);
+		leftTurn.runToPosition();
+		nCounter++;
+		if (nCounter > nTotalStep)
+			break;
+		n++;
+	} while (chSequence[nCounter] == 'J');
+
+	leftSlide.move(-SlideDist);
+	leftSlide.runToPosition();
+
+	if (n != 2)
+	leftTurn.move(-TurnDist * n);
 	leftTurn.runToPosition();
-    nCounter++;
-    if (nCounter > nTotalStep)
-      break;
-    n++;
-  } while (chSequence[nCounter] == 'J');
 
-  leftSlide.move(-SlideDist);
-  leftSlide.runToPosition();
-
-  leftTurn.move(-TurnDist * n);
-  leftTurn.runToPosition();
-
-  leftSlide.move(SlideDist);
-  leftSlide.runToPosition();
+	leftSlide.move(SlideDist);
+	leftSlide.runToPosition();
 }
 
 void rightClockwise()
 {
-  int n = 0;
-  do
-  {
-    rightTurn.move(-TurnDist);
+	int n = 0;
+	do
+	{
+		rightTurn.move(-TurnDist);
+		rightTurn.runToPosition();
+		nCounter++;
+		if (nCounter > nTotalStep)
+			break;
+		n++;
+	} while (chSequence[nCounter] == 'K');
+
+	rightSlide.move(-SlideDist);
+	rightSlide.runToPosition();
+
+	if (n != 2)
+		rightTurn.move(TurnDist * n);
 	rightTurn.runToPosition();
-    nCounter++;
-    if (nCounter > nTotalStep)
-      break;
-    n++;
-  } while (chSequence[nCounter] == 'K');
 
-  rightSlide.move(-SlideDist);
-  rightSlide.runToPosition();
-
-  rightTurn.move(TurnDist * n);
-  rightTurn.runToPosition();
-
-  rightSlide.move(SlideDist);
-  rightSlide.runToPosition();
+	rightSlide.move(SlideDist);
+	rightSlide.runToPosition();
 }
 
 void rightAnticlockwise()
 {
-  int n = 0;
-  do
-  {
-    rightTurn.move(TurnDist);
+	int n = 0;
+	do
+	{
+		rightTurn.move(TurnDist);
+		rightTurn.runToPosition();
+		nCounter++;
+		if (nCounter > nTotalStep)
+			break;
+		n++;
+	} while (chSequence[nCounter] == 'L');
+
+	rightSlide.move(-SlideDist);
+	rightSlide.runToPosition();
+
+	if(n != 2)
+		rightTurn.move(-TurnDist * n);
 	rightTurn.runToPosition();
-    nCounter++;
-    if (nCounter > nTotalStep)
-      break;
-    n++;
-  } while (chSequence[nCounter] == 'L');
 
-  rightSlide.move(-SlideDist);
-  rightSlide.runToPosition();
-
-  rightTurn.move(-TurnDist * n);
-  rightTurn.runToPosition();
-
-  rightSlide.move(SlideDist);
-  rightSlide.runToPosition();
+	rightSlide.move(SlideDist);
+	rightSlide.runToPosition();
 }
 
 void topClockwise()
@@ -1088,7 +1145,7 @@ void SlideTwoMotors(byte Motor1, byte Motor2, byte Direction, int nSteps)
 	if (Direction > GoAntiClockwise && Direction > GoClockwise)
 		return;
 
-	if (Direction == 0 && Direction != 1)
+	if (Direction == GoClockwise)
 	{
 		pmotor[Motor1]->move(nSteps);
 		pmotor[Motor2]->move(nSteps);
@@ -1099,7 +1156,7 @@ void SlideTwoMotors(byte Motor1, byte Motor2, byte Direction, int nSteps)
 		pmotor[Motor2]->move(-nSteps);
 	}
 
-	while (pmotor[Motor1]->distanceToGo() > 0 || pmotor[Motor2]->distanceToGo() > 0)
+	while (pmotor[Motor1]->distanceToGo() != 0 || pmotor[Motor2]->distanceToGo() != 0)
 	{
 		pmotor[Motor1]->run();
 		pmotor[Motor2]->run();
@@ -1125,7 +1182,7 @@ void TurnTwoMotors(byte Motor1, byte Motor2, byte Direction, int nSteps)
 		pmotor[Motor2]->move(nSteps);
 	}
 
-	while (pmotor[Motor1]->distanceToGo() > 0 || pmotor[Motor2]->distanceToGo() > 0)
+	while (pmotor[Motor1]->distanceToGo() != 0 || pmotor[Motor2]->distanceToGo() != 0)
 	{
 		pmotor[Motor1]->run();
 		pmotor[Motor2]->run();
@@ -1200,5 +1257,3 @@ void TurnTwoMotors(byte Motor1, byte Motor2, byte Direction, int nSteps)
 //  }
 //
 //}
-
-
