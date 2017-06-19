@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "*.erb": "erb",
-        "iosfwd": "cpp"
+        "iosfwd": "cpp",
+        "fstream": "cpp",
+        "locale": "cpp"
     }
 }
