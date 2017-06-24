@@ -97,6 +97,8 @@ int main()
         Camera.grab();
         unsigned char *data=new unsigned char[Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB )];
 	    Camera.retrieve ( data,raspicam::RASPICAM_FORMAT_RGB );
+        printf(data);
+	    ofstream outFile ("temp.ppm", ios::binary);
         serialPrintf(serial, "done_side");
     }
 
