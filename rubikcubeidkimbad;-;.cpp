@@ -141,6 +141,7 @@ void up_turn_ac(){
     up_turn_c();
     up_turn_c();
 	// I AUTHORISE YOU TO GET A CUBE ALGORITMN FORM SOMEWHERE
+    // if you're doing this then at least use a tilapiaing for loop
 }
 void right_turn_c(){
   char temp = apple[27];

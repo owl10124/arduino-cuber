@@ -456,10 +456,10 @@ void ScanCube()
 
 		int x;
 
-		// this series of functions essentially requests an image to be taken
-		// and the waits for the pi to confirm the image was successfully taken
-		// then the arduino proceeds to move the next face to the pi cam for 
-		// the image to be taken.
+		/*  this series of functions essentially requests an image to be taken
+			and the waits for the pi to confirm the image was successfully taken
+			then the arduino proceeds to move the next face to the pi cam for 
+			the image to be taken.*/
 		while (bSideDone == false)
 		{
 			if (Serial.available() > 0)

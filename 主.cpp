@@ -1,8 +1,10 @@
 //this is all pseudocode
 #include <ctime>
-#include <iostream>
 #include <fstream>
-#include <stringstream>
+#include <sstream>
+#include <stdio>
+#include <wiringPi.h>
+#include <wiringSerial.h>
 #include <raspicam/raspicam_cv.h>
 using namespace std;
 
@@ -10,27 +12,26 @@ bool ready = false;
 bool inserted = false;
 bool solving = false;
 string path = "/dev/ttyUSB0"; //idek work it out yourself
-string serial;
+int serial;
+char buffer;
+string input;
 
-void long_press()
+bool confirm(s, c)
 {
-    ready = false;
-    inserted = false;
-    solving = false;
-}
+    input = "";
 
-void short_press()
-{
-    if (!ready)
+    while (!serialDataAvail(s))
     {
-        ready = true;
-        return nil;
+        delay(1);
     }
-    else if (!inserted)
+
+    while (serialDataAvail(s))
     {
-        inserted = true;
-        return nil;
+        buffer=serialGetChar(s);
+        input+=buffer;
     }
+
+    return (input===c)
 }
 
 string readFile(fstream strm)
@@ -53,9 +54,13 @@ string readFile(fstream strm)
     }
 }
 
+void status()
+{
+
+}
+
 int main()
 {
-    fstream sFile(path, fstream::in|fstream::out);
     raspicam::RaspiCam Camera;
 
     sFile.seekp(1);
@@ -64,20 +69,37 @@ int main()
     cout<<"Opening camera\n";
     if (!Camera.open())
     {
-        cerr<<"Error opening camera\n";
+        printf("Error opening camera\n");
+        return 1;
     }
     
     //establish serial connection
-    sFile<<"a";
-    sFile.close();
-    sFile.open();
-    sFile>>serial;
-    while ()
-
-
-    while (true)
+    if ((serial = serialOpen(path, 28800))<0)
     {
-        
+        printf("Cannot open serial\n");
+        return 1;
+    }
+
+    if (wiringPiSetup()==-1)
+    {
+        printf("Cannot start pi\n");
+        return 1;
+    }
+
+    if (!confirm(serial, "ready")) return 1;
+
+    serialPrintf(serial, "pi_is_ready");
+    
+    if (!confirm(serial, "scan_cube")) return 1;
+
+    for (int i=0; i<6; i++){
+        if (!confirm(serial, "scan")) return 1;
+        Camera.grab();
+        unsigned char *data=new unsigned char[Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB )];
+	    Camera.retrieve ( data,raspicam::RASPICAM_FORMAT_RGB );
+        printf(data);
+	    ofstream outFile ("temp.ppm", ios::binary);
+        serialPrintf(serial, "done_side");
     }
 
     return 0;
