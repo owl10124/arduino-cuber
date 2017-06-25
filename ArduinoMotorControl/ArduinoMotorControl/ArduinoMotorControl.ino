@@ -22,10 +22,15 @@
 #define LeftRst A2
 #define RightRst A3
 
+// Change these to alter the behavior of the steppers accordingly
 #define CalibrationDist -20000
 #define FullTurn 1600
 #define TrigPoint 512
 
+// Change the speed and acceleration of the steppers
+// the SlideDist and TurnDist refers to the distance 
+// the steppers will move when turning or sliding, 
+// respectively. It is based on the FullTurn Distance
 #define SlideDist FullTurn/4 * 10
 #define MaxSpeed 50000
 #define MaxAccel 25000
@@ -142,7 +147,7 @@ void setup()
 
 	Serial.begin(28800);	// Set serial port communication baund rate
 
-#if 0 
+#if 1 
 
 	// initiates a handshake with the raspberry pi
 	while (bHandshake == false)
@@ -187,7 +192,7 @@ void loop()
 
 	bool bStart = false;
 
-#if 0
+#if 1
 
 	bool bCalMotors = false;
 
@@ -319,7 +324,6 @@ void loop()
 			// executes the commands
 			for (nCounter = 0; nCounter < nTotalStep;)
 			{
-				Serial.println(chSequence[nCounter]);
 				switch (chSequence[nCounter])
 				{
 				case 'A':
@@ -372,7 +376,7 @@ void loop()
 				}
 			}
 
-#if 0
+#if 1
 			HoldCube(false);
 			bHoldCube = false;
 			bStart = false;
@@ -628,6 +632,7 @@ void ScanCube()
 			}
 		}
 
+
 		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
 		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
@@ -850,12 +855,14 @@ void frontClockwise()
 	frontSlide.move(-SlideDist);
 	frontSlide.runToPosition();
 
-	if (n != 2)
+	if (n % 2 != 0)
+	{
 		frontTurn.move(TurnDist * n);
-	frontTurn.runToPosition();
+		frontTurn.runToPosition();
 
-	frontSlide.move(SlideDist);
-	frontSlide.runToPosition();
+		frontSlide.move(SlideDist);
+		frontSlide.runToPosition();
+	}
 }
 
 void frontAnticlockwise()
@@ -874,12 +881,14 @@ void frontAnticlockwise()
 	frontSlide.move(-SlideDist);
 	frontSlide.runToPosition();
 
-	if (n != 2)
+	if (n % 2 != 0)
+	{
 		frontTurn.move(-TurnDist * n);
-	frontTurn.runToPosition();
+		frontTurn.runToPosition();
 
-	frontSlide.move(SlideDist);
-	frontSlide.runToPosition();
+		frontSlide.move(SlideDist);
+		frontSlide.runToPosition();
+	}
 }
 
 void backClockwise()
@@ -898,12 +907,14 @@ void backClockwise()
 	backSlide.move(-SlideDist);
 	backSlide.runToPosition();
 
-	if (n != 2)
+	if (n % 2 != 0)
+	{
 		backTurn.move(TurnDist * n);
-	backTurn.runToPosition();
+		backTurn.runToPosition();
 
-	backSlide.move(SlideDist);
-	backSlide.runToPosition();
+		backSlide.move(SlideDist);
+		backSlide.runToPosition();
+	}
 }
 
 void backAnticlockwise()
@@ -922,12 +933,14 @@ void backAnticlockwise()
   backSlide.move(-SlideDist);
   backSlide.runToPosition();
 
-  if (n != 2)
-	backTurn.move(-TurnDist * n);
-  backTurn.runToPosition();
+  if (n % 2 != 0)
+  {
+	  backTurn.move(-TurnDist * n);
+	  backTurn.runToPosition();
 
-  backSlide.move(SlideDist);
-  backSlide.runToPosition();
+	  backSlide.move(SlideDist);
+	  backSlide.runToPosition();
+  }
 }
 
 void leftClockwise()
@@ -947,12 +960,14 @@ void leftClockwise()
 	leftSlide.move(-SlideDist);
 	leftSlide.runToPosition();
 
-	if (n != 2)
+	if (n % 2 != 0)
+	{
 		leftTurn.move(TurnDist * n);
-	leftTurn.runToPosition();
+		leftTurn.runToPosition();
 
-	leftSlide.move(SlideDist);
-	leftSlide.runToPosition();
+		leftSlide.move(SlideDist);
+		leftSlide.runToPosition();
+	}
 }
 
 void leftAnticlockwise()
@@ -971,12 +986,14 @@ void leftAnticlockwise()
 	leftSlide.move(-SlideDist);
 	leftSlide.runToPosition();
 
-	if (n != 2)
-	leftTurn.move(-TurnDist * n);
-	leftTurn.runToPosition();
+	if (n % 2 != 0)
+	{
+		leftTurn.move(-TurnDist * n);
+		leftTurn.runToPosition();
 
-	leftSlide.move(SlideDist);
-	leftSlide.runToPosition();
+		leftSlide.move(SlideDist);
+		leftSlide.runToPosition();
+	}
 }
 
 void rightClockwise()
@@ -995,12 +1012,14 @@ void rightClockwise()
 	rightSlide.move(-SlideDist);
 	rightSlide.runToPosition();
 
-	if (n != 2)
+	if (n % 2 != 0)
+	{
 		rightTurn.move(TurnDist * n);
-	rightTurn.runToPosition();
+		rightTurn.runToPosition();
 
-	rightSlide.move(SlideDist);
-	rightSlide.runToPosition();
+		rightSlide.move(SlideDist);
+		rightSlide.runToPosition();
+	}
 }
 
 void rightAnticlockwise()
@@ -1019,12 +1038,14 @@ void rightAnticlockwise()
 	rightSlide.move(-SlideDist);
 	rightSlide.runToPosition();
 
-	if(n != 2)
+	if (n % 2 != 0)
+	{
 		rightTurn.move(-TurnDist * n);
-	rightTurn.runToPosition();
+		rightTurn.runToPosition();
 
-	rightSlide.move(SlideDist);
-	rightSlide.runToPosition();
+		rightSlide.move(SlideDist);
+		rightSlide.runToPosition();
+	}
 }
 
 void topClockwise()
