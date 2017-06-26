@@ -3,6 +3,7 @@
         "*.erb": "erb",
         "iosfwd": "cpp",
         "fstream": "cpp",
-        "locale": "cpp"
+        "locale": "cpp",
+        "queue": "cpp"
     }
 }
