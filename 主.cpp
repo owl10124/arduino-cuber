@@ -27,7 +27,7 @@ bool confirm(int s, string c)
 
     while (serialDataAvail(s))
     {
-        buffer=serialGetChar(s);
+        buffer=serialGetchar(s);
         input+=buffer;
     }
 
@@ -37,7 +37,7 @@ bool confirm(int s, string c)
 string readFile(fstream strm)
 {
     string buffer;
-    sstream result;
+    stringstream result;
     if (strm.is_open())
     {
         while (strm)
@@ -62,8 +62,6 @@ void status()
 int main()
 {
     raspicam::RaspiCam Camera;
-
-    sFile.seekp(1);
 
     //camera stuff
     cout<<"Opening camera\n";
