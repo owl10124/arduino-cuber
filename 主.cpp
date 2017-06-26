@@ -2,7 +2,7 @@
 #include <ctime>
 #include <fstream>
 #include <sstream>
-#include <stdio>
+#include <iostream>
 #include <wiringPi.h>
 #include <wiringSerial.h>
 #include <raspicam/raspicam_cv.h>
@@ -16,7 +16,7 @@ int serial;
 char buffer;
 string input;
 
-bool confirm(s, c)
+bool confirm(int s, string c)
 {
     input = "";
 
@@ -97,7 +97,7 @@ int main()
         Camera.grab();
         unsigned char *data=new unsigned char[Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB )];
 	    Camera.retrieve ( data,raspicam::RASPICAM_FORMAT_RGB );
-        printf(data);
+        std::cout<<data;
 	    ofstream outFile ("temp.ppm", ios::binary);
         serialPrintf(serial, "done_side");
     }
