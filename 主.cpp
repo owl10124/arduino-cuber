@@ -31,7 +31,7 @@ bool confirm(int s, string c)
         input+=buffer;
     }
 
-    return (input==c)
+    return (input==c);
 }
 
 string readFile(fstream strm)
