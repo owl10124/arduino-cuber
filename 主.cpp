@@ -12,21 +12,18 @@
 using namespace std;
 using namespace cv;
 
-bool ready = false;
-bool inserted = false;
-bool solving = false;
+bool done_side = false;
 string path = "/dev/ttyUSB0"; //idek work it out yourself
 int serial;
 char buffer;
 string input;
-int i,j;
+int i,j,k;
 const int ts = 140;
 const int m = 45;
 const int w = 1280;
 const int h = 720;
+stringstream net;
 Mat img;
-char colours[10];
-colours[9]='\0';
 
 bool confirm(int s, string c)
 {
@@ -43,7 +40,7 @@ bool confirm(int s, string c)
         input+=buffer;
     }
 
-    return (input==c);
+    return (input====================================c);
 }
 
 string readFile(fstream strm)
@@ -126,48 +123,53 @@ int main()
 
     for (int i=0; i<6; i++){
         if (!confirm(serial, "scan")) return 1;
-        Camera.grab();
-        unsigned char *data=new unsigned char[Camera.getImageTypeSize ( raspicam::RASPICAM_FORMAT_RGB )];
-	    Camera.retrieve ( data,raspicam::RASPICAM_FORMAT_RGB );
-        std::cout<<data;
-	    ofstream outFile ("temp.ppm", ios::binary);
-        img=imread("temp.ppm");
-        if (!img.data){
-            cout<<"No data.\n";
-            return 1;
-        }
-        for (i=-1;i<2;i++){
-            for (j=-1;j<2;j++){
+        done_side = false;
+        while (!done_side){
+            Camera.grab();
+            Camera.retrieve(img);
+            char colours[10];
+            colours[9]='\0';
+            if (!img.data){
+                cout<<"No data.\n";
+                return 1;
+            }
+            for (k=-1;k<2;k++){
+                for (j=-1;j<2;j++){
+                    
+                    int b[2];
+                    //cout<<"Tile ("<<i<<", "<<j<<"):\n";
+                    b[0]=(w-ts)/2+(i*(ts+m));
+                    b[1]=(h-ts)/2+(j*(ts+m));
+                    Rect mask(b[0], b[1], ts, ts);
+                    Mat tile = img(mask);
+                    Scalar colour = mean(tile);
+                    //imwrite("tile"+to_string((i+1)*3+j+1)+".jpg", tile);
+                    
+                    /*
+                    Mat colourTile = img(Rect(0, 0, 10, 10));
+                    colourTile.setTo(colour);
+                    imwrite("colour"+to_string((i+1)*3+j+1)+".jpg", colourTile);
+                    */
+                    
+                    colours[(i+1)*3+j+1]=cchar(colour);
+                    
+                    /*
+                    cout<<"x: "<<b[0]<<"\n";
+                    cout<<"y: "<<b[1]<<"\n";
+                    cout<<"x2: "<<b[0]+ts<<"\n";
+                    cout<<"y2: "<<b[1]+ts<<"\n";
+                    cout<<"\n";
+                    */
+                }
+            }
+            if (colours.find('U')==string::npos) {
+                serialPrintf(serial, "done_side");
+                done_side = true;
                 
-                int b[2];
-                //cout<<"Tile ("<<i<<", "<<j<<"):\n";
-                b[0]=(w-ts)/2+(i*(ts+m));
-                b[1]=(h-ts)/2+(j*(ts+m));
-                Rect mask(b[0], b[1], ts, ts);
-                Mat tile = img(mask);
-                Scalar colour = mean(tile);
-                //imwrite("tile"+to_string((i+1)*3+j+1)+".jpg", tile);
-                
-                /*
-                Mat colourTile = img(Rect(0, 0, 10, 10));
-                colourTile.setTo(colour);
-                imwrite("colour"+to_string((i+1)*3+j+1)+".jpg", colourTile);
-                */
-                
-                colours[(i+1)*3+j+1]=cchar(colour);
-                
-                /*
-                cout<<"x: "<<b[0]<<"\n";
-                cout<<"y: "<<b[1]<<"\n";
-                cout<<"x2: "<<b[0]+ts<<"\n";
-                cout<<"y2: "<<b[1]+ts<<"\n";
-                cout<<"\n";
-                */
             }
         }
-        if 'U'
-        serialPrintf(serial, "done_side");
     }
+
 
     return 0;
 }
