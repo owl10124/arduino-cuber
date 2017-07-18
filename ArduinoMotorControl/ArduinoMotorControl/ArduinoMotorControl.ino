@@ -12,28 +12,23 @@
 #define StartSw 43
 #define HoldCubeSw 44
 
-#define FrontSw 38
-#define BackSw 39
-#define LeftSw 40
-#define RightSw 41
+#define FrontSw 47
+#define BackSw 44
+#define LeftSw 45
+#define RightSw 46
 
 #define FrontRst A0
 #define BackRst A1
 #define LeftRst A2
 #define RightRst A3
 
-// Change these to alter the behavior of the steppers accordingly
 #define CalibrationDist -20000
 #define FullTurn 1600
-#define TrigPoint 512
+#define TrigPoint 900
 
-// Change the speed and acceleration of the steppers
-// the SlideDist and TurnDist refers to the distance 
-// the steppers will move when turning or sliding, 
-// respectively. It is based on the FullTurn Distance
 #define SlideDist FullTurn/4 * 10
-#define MaxSpeed 50000
-#define MaxAccel 25000
+#define MaxSpeed 80000
+#define MaxAccel 50000
 #define TurnDist FullTurn/4
 
 #define FRONTTURN 0
@@ -49,7 +44,7 @@
 #define GoClockwise 0
 #define GoAntiClockwise 1
 
-#define MAX_TURN_STEPS 40
+#define MAX_TURN_STEPS 400
 #define MAX_SERIAL_LENGTH 1000
 
 // Define a stepper and the pins it will use
@@ -67,7 +62,7 @@ AccelStepper rightSlide(1, 29, 10);
 AccelStepper *pmotor[8];
 
 char chSequence[MAX_TURN_STEPS];
-char chSerial[MAX_SERIAL_LENGTH + 1];		// Extra one char for terminator of string 0x00
+char chSerial[MAX_SERIAL_LENGTH + 1];    // Extra one char for terminator of string 0x00
 int nCounter, nTotalStep, nTotalChar;
 
 int StartSwState = 0;         // current state of the Start button
@@ -77,7 +72,7 @@ int lastCalSwState = 0;
 int HoldSwState = 0;         // current state of the Hold Cube button
 int lastHoldSwState = 0;
 
-bool bHoldCube = false;		// false menas currently cube is not hold on the jig
+bool bHoldCube = false;   // false menas currently cube is not hold on the jig
 
 // this initializes the chars used for serial protocol
 char* pchGO = "GO";
@@ -85,724 +80,704 @@ char* pchDoneSide = "done_side";
 
 void setup()
 {
-	bool bHandshake = false;
+  bool bHandshake = false;
 
-	// this initializes the array of stepper motors, for easy 
-	// reference in the TurnTwoMotors and SlideTwoMotors functions
-	pmotor[FRONTTURN] = &frontTurn;
-	pmotor[FRONTSLIDE] = &frontSlide;
-	pmotor[BACKTURN] = &backTurn;
-	pmotor[BACKSLIDE] = &backSlide;
-	pmotor[LEFTTURN] = &leftTurn;
-	pmotor[LEFTSLIDE] = &leftSlide;
-	pmotor[RIGHTTURN] = &rightTurn;
-	pmotor[RIGHTSLIDE] = &rightSlide;
+  // this initializes the array of stepper motors, for easy 
+  // reference in the TurnTwoMotors and SlideTwoMotors functions
+  pmotor[FRONTTURN] = &frontTurn;
+  pmotor[FRONTSLIDE] = &frontSlide;
+  pmotor[BACKTURN] = &backTurn;
+  pmotor[BACKSLIDE] = &backSlide;
+  pmotor[LEFTTURN] = &leftTurn;
+  pmotor[LEFTSLIDE] = &leftSlide;
+  pmotor[RIGHTTURN] = &rightTurn;
+  pmotor[RIGHTSLIDE] = &rightSlide;
 
-	// Change these to suit your stepper if you want
-	frontTurn.setEnablePin(30);
-	frontTurn.setMaxSpeed(MaxSpeed);
-	frontTurn.setAcceleration(MaxAccel);
+  // Change these to suit your stepper if you want
+  frontTurn.setEnablePin(30);
+  frontTurn.setMaxSpeed(MaxSpeed);
+  frontTurn.setAcceleration(MaxAccel);
 
-	frontSlide.setEnablePin(31);
-	frontSlide.setMaxSpeed(MaxSpeed);
-	frontSlide.setAcceleration(MaxAccel);
+  frontSlide.setEnablePin(31);
+  frontSlide.setMaxSpeed(MaxSpeed);
+  frontSlide.setAcceleration(MaxAccel);
 
-	backTurn.setEnablePin(32);
-	backTurn.setMaxSpeed(MaxSpeed);
-	backTurn.setAcceleration(MaxAccel);
+  backTurn.setEnablePin(32);
+  backTurn.setMaxSpeed(MaxSpeed);
+  backTurn.setAcceleration(MaxAccel);
 
-	backSlide.setEnablePin(33);
-	backSlide.setMaxSpeed(MaxSpeed);
-	backSlide.setAcceleration(MaxAccel);
+  backSlide.setEnablePin(33);
+  backSlide.setMaxSpeed(MaxSpeed);
+  backSlide.setAcceleration(MaxAccel);
 
-	leftTurn.setEnablePin(34);
-	leftTurn.setMaxSpeed(MaxSpeed);
-	leftTurn.setAcceleration(MaxAccel);
+  leftTurn.setEnablePin(34);
+  leftTurn.setMaxSpeed(MaxSpeed);
+  leftTurn.setAcceleration(MaxAccel);
 
-	leftSlide.setEnablePin(35);
-	leftSlide.setMaxSpeed(MaxSpeed);
-	leftSlide.setAcceleration(MaxAccel);
+  leftSlide.setEnablePin(35);
+  leftSlide.setMaxSpeed(MaxSpeed);
+  leftSlide.setAcceleration(MaxAccel);
 
-	rightTurn.setEnablePin(36);
-	rightTurn.setMaxSpeed(MaxSpeed);
-	rightTurn.setAcceleration(MaxAccel);
+  rightTurn.setEnablePin(36);
+  rightTurn.setMaxSpeed(MaxSpeed);
+  rightTurn.setAcceleration(MaxAccel);
 
-	rightSlide.setEnablePin(37);
-	rightSlide.setMaxSpeed(MaxSpeed);
-	rightSlide.setAcceleration(MaxAccel);
+  rightSlide.setEnablePin(37);
+  rightSlide.setMaxSpeed(MaxSpeed);
+  rightSlide.setAcceleration(MaxAccel);
 
-	pinMode(FrontSw, INPUT);
-	pinMode(BackSw, INPUT);
-	pinMode(LeftSw, INPUT);
-	pinMode(RightSw, INPUT);
+  pinMode(FrontSw, INPUT);
+  pinMode(BackSw, INPUT);
+  pinMode(LeftSw, INPUT);
+  pinMode(RightSw, INPUT);
 
-	pinMode(FrontRst, INPUT);
-	pinMode(BackRst, INPUT);
-	pinMode(LeftRst, INPUT);
-	pinMode(RightRst, INPUT);
+  pinMode(FrontRst, INPUT);
+  pinMode(BackRst, INPUT);
+  pinMode(LeftRst, INPUT);
+  pinMode(RightRst, INPUT);
 
-	pinMode(MotorCalSw, INPUT);
-	pinMode(StartSw, INPUT);
-	pinMode(HoldCubeSw, INPUT);
+  pinMode(MotorCalSw, INPUT);
+  pinMode(StartSw, INPUT);
+  pinMode(HoldCubeSw, INPUT);
 
-	Serial.begin(28800);	// Set serial port communication baund rate
+  Serial.begin(115200);  // Set serial port communication baund rate
 
-#if 1 
-
-	// initiates a handshake with the raspberry pi
-	while (bHandshake == false)
-	{
-		Serial.println("ready");
-		delay(1000);
-
-		if (Serial.available() > 0)
-		{
-			delay(150);
-			nTotalChar = Serial.available();
-			if (nTotalChar > MAX_SERIAL_LENGTH)
-				nTotalChar = MAX_SERIAL_LENGTH;
-
-			int x;
-			for (x = 0; x < nTotalChar; x++)
-			{
-				chSerial[x] = Serial.read();
-			}
-			chSerial[x] = 0x00;
-
-			char* pchPiIsReady = "pi_is_ready";
-			if (strcmp(chSerial, pchPiIsReady)==0)
-				bHandshake = true;
-		}
-	}
-
-	// initializes the motors to correct positions
-	initMotors();
+#if 0 
+  // initiates a handshake with the raspberry pi
+  while (bHandshake == false)
+  {
+    Serial.println("ready");
+    delay(1000);
+    if (Serial.available() > 0)
+    {
+      delay(150);
+      nTotalChar = Serial.available();
+      if (nTotalChar > MAX_SERIAL_LENGTH)
+        nTotalChar = MAX_SERIAL_LENGTH;
+      int x;
+      for (x = 0; x < nTotalChar; x++)
+      {
+        chSerial[x] = Serial.read();
+      }
+      chSerial[x] = 0x00;
+      char* pchPiIsReady = "pi_is_ready";
+      if (strcmp(chSerial, pchPiIsReady)==0)
+        bHandshake = true;
+    }
+  }
+  // initializes the motors to correct positions
+  initMotors();
 #endif
 
 }
 
 void loop()
 {
-	// waits for trigger
-	//while (digitalRead(StartSw) == LOW)
-	//{
-	//	if (digitalRead(MotorCalSw) == HIGH)
-	//		initMotors();
-	//}
+  // waits for trigger
+  //while (digitalRead(StartSw) == LOW)
+  //{
+  //  if (digitalRead(MotorCalSw) == HIGH)
+  //    initMotors();
+  //}
 
-	bool bStart = false;
+  bool bStart = false;
 
-#if 1
-
-	bool bCalMotors = false;
-
-	// read the pushbutton input pin:
-	if (bHoldCube == true)
-	{
-		StartSwState = digitalRead(StartSw);
-
-		// compare the buttonState to its previous state
-		if (StartSwState != lastStartSwState)
-		{
-			// if the state has changed, increment the counter
-			if (StartSwState == HIGH)
-			{
-				// if the current state is HIGH then the button
-				// wend from off to on:
-				bStart = false;
-			}
-			else if (StartSwState == LOW)
-			{
-				bStart = true;
-			}
-			// Delay a little bit to avoid bouncing
-			delay(30);
-		}
-		// save the current state as the last state,
-		//for next time through the loop
-		lastStartSwState = StartSwState;
-	}
-
-	if (bStart == false)
-	{
-		// read the pushbutton input pin:
-		CalSwState = digitalRead(MotorCalSw);
-
-		// compare the buttonState to its previous state
-		if (CalSwState != lastCalSwState)
-		{
-			// if the state has changed, increment the counter
-			if (CalSwState == HIGH)
-			{
-				// if the current state is HIGH then the button
-				// wend from off to on:
-				bStart = false;
-				bCalMotors = false;
-			}
-			else if (CalSwState == LOW)
-			{
-				bCalMotors = true;
-				initMotors();
-				bCalMotors = false;
-			}
-			// Delay a little bit to avoid bouncing
-			delay(30);
-		}
-		// save the current state as the last state,
-		//for next time through the loop
-		lastCalSwState = CalSwState;
-	}
-
-	if (bCalMotors == false && bStart == false)
-	{
-		// read the pushbutton input pin:
-		HoldSwState = digitalRead(HoldCubeSw);
-
-		// compare the buttonState to its previous state
-		if (HoldSwState != lastHoldSwState)
-		{
-			// if the state has changed, increment the counter
-			if (HoldSwState == HIGH)
-			{
-				// if the current state is HIGH then the button
-				// wend from off to on:
-				bStart = false;
-				bCalMotors = false;
-			}
-			else if (HoldSwState == LOW)
-			{
-				if (bHoldCube == false)
-				{
-					HoldCube(true);
-					bHoldCube = true;
-				}
-				else if (bHoldCube == true)		// If currently cube is hold, then release it
-				{
-					HoldCube(false);			// Release cube
-					bHoldCube = false;			// set status after release the cube
-				}
-			}
-			// Delay a little bit to avoid bouncing
-			delay(30);
-		}
-		// save the current state as the last state,
-		//for next time through the loop
-		lastHoldSwState = CalSwState;
-	}
-
-	if (bStart == true && bHoldCube == true)
-	{
-		// communicates with the raspberry pi to scan the cube
-		//ScanCube();
-
-		while (bStart = true)
-
+#if 0
+  bool bCalMotors = false;
+  // read the pushbutton input pin:
+  if (bHoldCube == true)
+  {
+    StartSwState = digitalRead(StartSw);
+    // compare the buttonState to its previous state
+    if (StartSwState != lastStartSwState)
+    {
+      // if the state has changed, increment the counter
+      if (StartSwState == HIGH)
+      {
+        // if the current state is HIGH then the button
+        // wend from off to on:
+        bStart = false;
+      }
+      else if (StartSwState == LOW)
+      {
+        bStart = true;
+      }
+      // Delay a little bit to avoid bouncing
+      delay(30);
+    }
+    // save the current state as the last state,
+    //for next time through the loop
+    lastStartSwState = StartSwState;
+  }
+  if (bStart == false)
+  {
+    // read the pushbutton input pin:
+    CalSwState = digitalRead(MotorCalSw);
+    // compare the buttonState to its previous state
+    if (CalSwState != lastCalSwState)
+    {
+      // if the state has changed, increment the counter
+      if (CalSwState == HIGH)
+      {
+        // if the current state is HIGH then the button
+        // wend from off to on:
+        bStart = false;
+        bCalMotors = false;
+      }
+      else if (CalSwState == LOW)
+      {
+        bCalMotors = true;
+        initMotors();
+        bCalMotors = false;
+      }
+      // Delay a little bit to avoid bouncing
+      delay(30);
+    }
+    // save the current state as the last state,
+    //for next time through the loop
+    lastCalSwState = CalSwState;
+  }
+  if (bCalMotors == false && bStart == false)
+  {
+    // read the pushbutton input pin:
+    HoldSwState = digitalRead(HoldCubeSw);
+    // compare the buttonState to its previous state
+    if (HoldSwState != lastHoldSwState)
+    {
+      // if the state has changed, increment the counter
+      if (HoldSwState == HIGH)
+      {
+        // if the current state is HIGH then the button
+        // wend from off to on:
+        bStart = false;
+        bCalMotors = false;
+      }
+      else if (HoldSwState == LOW)
+      {
+        if (bHoldCube == false)
+        {
+          HoldCube(true);
+          bHoldCube = true;
+        }
+        else if (bHoldCube == true)   // If currently cube is hold, then release it
+        {
+          HoldCube(false);      // Release cube
+          bHoldCube = false;      // set status after release the cube
+        }
+      }
+      // Delay a little bit to avoid bouncing
+      delay(30);
+    }
+    // save the current state as the last state,
+    //for next time through the loop
+    lastHoldSwState = CalSwState;
+  }
+  if (bStart == true && bHoldCube == true)
+  {
+    // communicates with the raspberry pi to scan the cube
+    //ScanCube();
+    while (bStart = true)
 #else
-	bStart = true;
-	if (1)
-	{
+  bStart = true;
+  if (1)
+  {
 #endif
-		while (bStart = true)
-		{
-			// gets instructons from the raspberry pi
-			nTotalStep = 0;
-			if (Serial.available() > 0)
-			{
-				delay(150);
-				nTotalStep = Serial.available();
+    while (bStart = true)
+    {
+      // gets instructons from the raspberry pi
+      nTotalStep = 0;
+      if (Serial.available() > 0)
+      {
+        delay(150);
+        nTotalStep = Serial.available();
 
-				for (int x = 0; x < nTotalStep; x++)
-				{
-					chSequence[x] = Serial.read();
-				}
-			}
+        for (int x = 0; x < nTotalStep; x++)
+        {
+          chSequence[x] = Serial.read();
+        }
+      }
 
-			// checks for error in the transmitted commands
-			if (CheckCommand() == 1)
-				break;
+      // checks for error in the transmitted commands
+      if (CheckCommand() == 1)
+        break;
 
-			// executes the commands
-			for (nCounter = 0; nCounter < nTotalStep;)
-			{
-				switch (chSequence[nCounter])
-				{
-				case 'A':
-					topClockwise();
-					break;
+      // executes the commands
+      for (nCounter = 0; nCounter < nTotalStep;)
+      {
+        Serial.println(chSequence[nCounter]);
+        switch (chSequence[nCounter])
+        {
+        case 'A':
+          topClockwise();
+          break;
 
-				case 'B':
-					topAnticlockwise();
-					break;
+        case 'B':
+          topAnticlockwise();
+          break;
 
-				case 'C':
-					bottomClockwise();
-					break;
+        case 'C':
+          bottomClockwise();
+          break;
 
-				case 'D':
-					bottomAnticlockwise();
-					break;
+        case 'D':
+          bottomAnticlockwise();
+          break;
 
-				case 'E':
-					frontClockwise();
-					break;
+        case 'E':
+          frontClockwise();
+          break;
 
-				case 'F':
-					frontAnticlockwise();
-					break;
+        case 'F':
+          frontAnticlockwise();
+          break;
 
-				case 'G':
-					backClockwise();
-					break;
+        case 'G':
+          backClockwise();
+          break;
 
-				case 'H':
-					backAnticlockwise();
-					break;
+        case 'H':
+          backAnticlockwise();
+          break;
 
-				case 'I':
-					leftClockwise();
-					break;
+        case 'I':
+          leftClockwise();
+          break;
 
-				case 'J':
-					leftAnticlockwise();
-					break;
+        case 'J':
+          leftAnticlockwise();
+          break;
 
-				case 'K':
-					rightClockwise();
-					break;
+        case 'K':
+          rightClockwise();
+          break;
 
-				case 'L':
-					rightAnticlockwise();
-					break;
-				}
-			}
+        case 'L':
+          rightAnticlockwise();
+          break;
+        }
+      }
 
-#if 1
-			HoldCube(false);
-			bHoldCube = false;
-			bStart = false;
+#if 0
+      HoldCube(false);
+      bHoldCube = false;
+      bStart = false;
 #endif 
-		}
-	}
+    }
+  }
 }
 
 
 //void ClearCharArray(char &chArray[])
 //{
-//	for (int w = 0; w < sizeof(chArray); w++)
-//	{
-//		chArray[w] = ' ';
-//	}
+//  for (int w = 0; w < sizeof(chArray); w++)
+//  {
+//    chArray[w] = ' ';
+//  }
 //}
 
 void HoldCube(bool Hold)
 {
-	if (Hold == false)
-	{
-		frontSlide.move(-SlideDist);
-		backSlide.move(-SlideDist);
-		leftSlide.move(-SlideDist);
-		rightSlide.move(-SlideDist);
-	}
-	else if (Hold == true)
-	{
-		frontSlide.move(SlideDist);
-		backSlide.move(SlideDist);
-		leftSlide.move(SlideDist);
-		rightSlide.move(SlideDist);
-	}
+  if (Hold == false)
+  {
+    frontSlide.move(-SlideDist);
+    backSlide.move(-SlideDist);
+    leftSlide.move(-SlideDist);
+    rightSlide.move(-SlideDist);
+  }
+  else if (Hold == true)
+  {
+    frontSlide.move(SlideDist);
+    backSlide.move(SlideDist);
+    leftSlide.move(SlideDist);
+    rightSlide.move(SlideDist);
+  }
 
-	while (frontSlide.distanceToGo() > 0 || backSlide.distanceToGo() > 0 || leftSlide.distanceToGo() > 0 || rightSlide.distanceToGo() > 0)
-	{
-		frontSlide.run();
-		backSlide.run();
-		leftSlide.run();
-		rightSlide.run();
-	}
+  while (frontSlide.distanceToGo() > 0 || backSlide.distanceToGo() > 0 || leftSlide.distanceToGo() > 0 || rightSlide.distanceToGo() > 0)
+  {
+    frontSlide.run();
+    backSlide.run();
+    leftSlide.run();
+    rightSlide.run();
+  }
 }
 
 void ScanCube()
 {
-	// tells the pi to start scanning
-	Serial.println("init_scan");
-	delay(200);
+  // tells the pi to start scanning
+  Serial.println("init_scan");
+  delay(200);
 
-	int nSides = 6;
-	bool bSideDone = false;
+  int nSides = 6;
+  bool bSideDone = false;
 
-	// check if pi confirms scan
-	if (Serial.available() > 0)
-	{
-		delay(150);
-		nTotalChar = Serial.available();
-		if (nTotalChar > MAX_SERIAL_LENGTH)
-			nTotalChar = MAX_SERIAL_LENGTH;
+  // check if pi confirms scan
+  if (Serial.available() > 0)
+  {
+    delay(150);
+    nTotalChar = Serial.available();
+    if (nTotalChar > MAX_SERIAL_LENGTH)
+      nTotalChar = MAX_SERIAL_LENGTH;
 
-		int x;
-		for (x = 0; x < nTotalChar; x++)
-		{
-			chSerial[x] = Serial.read();
-		}
+    int x;
+    for (x = 0; x < nTotalChar; x++)
+    {
+      chSerial[x] = Serial.read();
+    }
 
-		chSerial[x] = 0x00;
-	}
-
-
-	if (strcmp(chSerial, pchGO) == 0)
-	{
-		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
-		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
-
-		Serial.println("scan");
-
-		int x;
-
-		/*  this series of functions essentially requests an image to be taken
-			and the waits for the pi to confirm the image was successfully taken
-			then the arduino proceeds to move the next face to the pi cam for 
-			the image to be taken.*/
-		while (bSideDone == false)
-		{
-			if (Serial.available() > 0)
-			{
-				delay(150);
-				nTotalChar = Serial.available();
-				if (nTotalChar > MAX_SERIAL_LENGTH)
-					nTotalChar = MAX_SERIAL_LENGTH;
-
-				for (x = 0; x < nTotalChar; x++)
-				{
-					chSerial[x] = Serial.read();
-				}
-
-				chSerial[x] = 0x00;
-
-				if (strcmp(chSerial, pchDoneSide) == 0)
-				{
-					bSideDone = true;
-					nSides -= 1;
-				}
-			}
-		}
-
-		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist * 2);
-
-		Serial.println("scan");
-
-		while (bSideDone == false)
-		{
-			if (Serial.available() > 0)
-			{
-				delay(150);
-				nTotalChar = Serial.available();
-				if (nTotalChar > MAX_SERIAL_LENGTH)
-					nTotalChar = MAX_SERIAL_LENGTH;
-
-				for (x = 0; x < nTotalChar; x++)
-				{
-					chSerial[x] = Serial.read();
-				}
-
-				chSerial[x] = 0x00;
-
-				if (strcmp(chSerial, pchDoneSide) == 0)
-				{
-					bSideDone = true;
-					nSides -= 1;
-				}
-			}
-		}
-
-		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
-		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
-		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
-		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
-
-		Serial.println("scan");
-
-		while (bSideDone == false)
-		{
-			if (Serial.available() > 0)
-			{
-				delay(150);
-				nTotalChar = Serial.available();
-				if (nTotalChar > MAX_SERIAL_LENGTH)
-					nTotalChar = MAX_SERIAL_LENGTH;
-
-				for (x = 0; x < nTotalChar; x++)
-				{
-					chSerial[x] = Serial.read();
-				}
-
-				chSerial[x] = 0x00;
-
-				if (strcmp(chSerial, pchDoneSide) == 0)
-				{
-					bSideDone = true;
-					nSides -= 1;
-				}
-			}
-		}
-
-		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist * 2);
-
-		Serial.println("scan");
-
-		while (bSideDone == false)
-		{
-			if (Serial.available() > 0)
-			{
-				delay(150);
-				nTotalChar = Serial.available();
-				if (nTotalChar > MAX_SERIAL_LENGTH)
-					nTotalChar = MAX_SERIAL_LENGTH;
-
-				for (x = 0; x < nTotalChar; x++)
-				{
-					chSerial[x] = Serial.read();
-				}
-
-				chSerial[x] = 0x00;
-
-				if (strcmp(chSerial, pchDoneSide) == 0)
-				{
-					bSideDone = true;
-					nSides -= 1;
-				}
-			}
-		}
-
-		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
-		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
-		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
-		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
-		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
-		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
-
-		Serial.println("scan");
-
-		while (bSideDone == false)
-		{
-			if (Serial.available() > 0)
-			{
-				delay(150);
-				nTotalChar = Serial.available();
-				if (nTotalChar > MAX_SERIAL_LENGTH)
-					nTotalChar = MAX_SERIAL_LENGTH;
-
-				for (x = 0; x < nTotalChar; x++)
-				{
-					chSerial[x] = Serial.read();
-				}
-
-				chSerial[x] = 0x00;
-
-				if (strcmp(chSerial, pchDoneSide) == 0)
-				{
-					bSideDone = true;
-					nSides -= 1;
-				}
-			}
-		}
-
-		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist * 2);
-
-		Serial.println("scan");
-
-		while (bSideDone == false)
-		{
-			if (Serial.available() > 0)
-			{
-				delay(150);
-				nTotalChar = Serial.available();
-				if (nTotalChar > MAX_SERIAL_LENGTH)
-					nTotalChar = MAX_SERIAL_LENGTH;
-
-				for (x = 0; x < nTotalChar; x++)
-				{
-					chSerial[x] = Serial.read();
-				}
-
-				chSerial[x] = 0x00;
-
-				if (strcmp(chSerial, pchDoneSide) == 0)
-				{
-					bSideDone = true;
-					nSides -= 1;
-				}
-			}
-		}
+    chSerial[x] = 0x00;
+  }
 
 
-		TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
-		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
-		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
-		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
-		SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
-		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
-		TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
-		SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
-	}
-	return;
+  if (strcmp(chSerial, pchGO) == 0)
+  {
+    SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+    TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+
+    Serial.println("scan");
+
+    int x;
+
+    /*  this series of functions essentially requests an image to be taken
+      and the waits for the pi to confirm the image was successfully taken
+      then the arduino proceeds to move the next face to the pi cam for 
+      the image to be taken.*/
+    while (bSideDone == false)
+    {
+      if (Serial.available() > 0)
+      {
+        delay(150);
+        nTotalChar = Serial.available();
+        if (nTotalChar > MAX_SERIAL_LENGTH)
+          nTotalChar = MAX_SERIAL_LENGTH;
+
+        for (x = 0; x < nTotalChar; x++)
+        {
+          chSerial[x] = Serial.read();
+        }
+
+        chSerial[x] = 0x00;
+
+        if (strcmp(chSerial, pchDoneSide) == 0)
+        {
+          bSideDone = true;
+          nSides -= 1;
+        }
+      }
+    }
+
+    TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist * 2);
+
+    Serial.println("scan");
+
+    while (bSideDone == false)
+    {
+      if (Serial.available() > 0)
+      {
+        delay(150);
+        nTotalChar = Serial.available();
+        if (nTotalChar > MAX_SERIAL_LENGTH)
+          nTotalChar = MAX_SERIAL_LENGTH;
+
+        for (x = 0; x < nTotalChar; x++)
+        {
+          chSerial[x] = Serial.read();
+        }
+
+        chSerial[x] = 0x00;
+
+        if (strcmp(chSerial, pchDoneSide) == 0)
+        {
+          bSideDone = true;
+          nSides -= 1;
+        }
+      }
+    }
+
+    TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+    SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+    SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+    TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
+
+    Serial.println("scan");
+
+    while (bSideDone == false)
+    {
+      if (Serial.available() > 0)
+      {
+        delay(150);
+        nTotalChar = Serial.available();
+        if (nTotalChar > MAX_SERIAL_LENGTH)
+          nTotalChar = MAX_SERIAL_LENGTH;
+
+        for (x = 0; x < nTotalChar; x++)
+        {
+          chSerial[x] = Serial.read();
+        }
+
+        chSerial[x] = 0x00;
+
+        if (strcmp(chSerial, pchDoneSide) == 0)
+        {
+          bSideDone = true;
+          nSides -= 1;
+        }
+      }
+    }
+
+    TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist * 2);
+
+    Serial.println("scan");
+
+    while (bSideDone == false)
+    {
+      if (Serial.available() > 0)
+      {
+        delay(150);
+        nTotalChar = Serial.available();
+        if (nTotalChar > MAX_SERIAL_LENGTH)
+          nTotalChar = MAX_SERIAL_LENGTH;
+
+        for (x = 0; x < nTotalChar; x++)
+        {
+          chSerial[x] = Serial.read();
+        }
+
+        chSerial[x] = 0x00;
+
+        if (strcmp(chSerial, pchDoneSide) == 0)
+        {
+          bSideDone = true;
+          nSides -= 1;
+        }
+      }
+    }
+
+    TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
+    SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
+    SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+    TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
+    SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+    SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+
+    Serial.println("scan");
+
+    while (bSideDone == false)
+    {
+      if (Serial.available() > 0)
+      {
+        delay(150);
+        nTotalChar = Serial.available();
+        if (nTotalChar > MAX_SERIAL_LENGTH)
+          nTotalChar = MAX_SERIAL_LENGTH;
+
+        for (x = 0; x < nTotalChar; x++)
+        {
+          chSerial[x] = Serial.read();
+        }
+
+        chSerial[x] = 0x00;
+
+        if (strcmp(chSerial, pchDoneSide) == 0)
+        {
+          bSideDone = true;
+          nSides -= 1;
+        }
+      }
+    }
+
+    TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist * 2);
+
+    Serial.println("scan");
+
+    while (bSideDone == false)
+    {
+      if (Serial.available() > 0)
+      {
+        delay(150);
+        nTotalChar = Serial.available();
+        if (nTotalChar > MAX_SERIAL_LENGTH)
+          nTotalChar = MAX_SERIAL_LENGTH;
+
+        for (x = 0; x < nTotalChar; x++)
+        {
+          chSerial[x] = Serial.read();
+        }
+
+        chSerial[x] = 0x00;
+
+        if (strcmp(chSerial, pchDoneSide) == 0)
+        {
+          bSideDone = true;
+          nSides -= 1;
+        }
+      }
+    }
+
+    TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
+    SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
+    SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+    TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+    SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+    SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+    TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+    SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
+  }
+  return;
 }
 
 int CheckCommand()
 {
-	// checks for errors in the command by cycling it through a loop
-	for (nCounter = 0; nCounter < nTotalStep;nCounter++)
-	{
-		if ((chSequence[nCounter] < 0x41) || (chSequence[nCounter] > 0x4C)) // 'A' = 0x41, 'L' = 0x4C
-		{
-			Serial.println("redo");
-			Serial.println("Bad Command Sequence Given");
-			Serial.println("Error: Aborting");
-			return 1;
-		}
+  // checks for errors in the command by cycling it through a loop
+  for (nCounter = 0; nCounter < nTotalStep;nCounter++)
+  {
+    if ((chSequence[nCounter] < 0x41) || (chSequence[nCounter] > 0x4C)) // 'A' = 0x41, 'L' = 0x4C
+    {
+      Serial.println("redo");
+      Serial.println("Bad Command Sequence Given");
+      Serial.println("Error: Aborting");
+      return 1;
+    }
 #if 0
-		switch (chSequence[nCounter])
-		{
-		case 'A':
-			break;
-
-		case 'B':
-			break;
-
-		case 'C':
-			break;
-
-		case 'D':
-			break;
-
-		case 'E':
-			break;
-
-		case 'F':
-			break;
-
-		case 'G':
-			break;
-
-		case 'H':
-			break;
-
-		case 'I':
-			break;
-
-		case 'J':
-			break;
-
-		case 'K':
-			break;
-
-		case 'L':
-			break;
-
-		default:
-			Serial.println("redo");
-			Serial.println("Bad Command Sequence Given");
-			Serial.println("Error: Aborting");
-			return 1;
-		}
+    switch (chSequence[nCounter])
+    {
+    case 'A':
+      break;
+    case 'B':
+      break;
+    case 'C':
+      break;
+    case 'D':
+      break;
+    case 'E':
+      break;
+    case 'F':
+      break;
+    case 'G':
+      break;
+    case 'H':
+      break;
+    case 'I':
+      break;
+    case 'J':
+      break;
+    case 'K':
+      break;
+    case 'L':
+      break;
+    default:
+      Serial.println("redo");
+      Serial.println("Bad Command Sequence Given");
+      Serial.println("Error: Aborting");
+      return 1;
+    }
 #endif
-	}
+  }
 
-	return 0;
+  return 0;
 }
 
 void initMotors()
 {
-	// initializes the bottom four slider motors
-	// with input from the limit switches
-	frontSlide.move(100000000);
-	while (digitalRead(FrontSw) == LOW)
-	{
-		frontSlide.run();
-	}
-	frontSlide.setCurrentPosition(0);
+  //Serial.println("initMotors Starts!");
 
-	backSlide.move(100000000);
-	while (digitalRead(BackSw) == LOW)
-	{
-		backSlide.run();
-	}
-	backSlide.setCurrentPosition(0);
+#if 0
+  // initializes the bottom four slider motors
+  // with input from the limit switches
+  frontSlide.move(100000000);
+  while (digitalRead(FrontSw) == LOW)
+  {
+    frontSlide.run();
+  }
+  frontSlide.setCurrentPosition(0);
 
-	leftSlide.move(100000000);
-	while (digitalRead(LeftSw) == LOW)
-	{
-		leftSlide.run();
-	}
-	leftSlide.setCurrentPosition(0);
+  backSlide.move(100000000);
+  while (digitalRead(BackSw) == LOW)
+  {
+    backSlide.run();
+  }
+  backSlide.setCurrentPosition(0);
 
-	rightSlide.move(100000000);
-	while (digitalRead(RightSw) == LOW)
-	{
-		rightSlide.run();
-	}
-	rightSlide.setCurrentPosition(0);
+  leftSlide.move(100000000);
+  while (digitalRead(LeftSw) == LOW)
+  {
+    leftSlide.run();
+  }
+  leftSlide.setCurrentPosition(0);
 
-	// resets the position of the four turning
-	// motors on top using te data gathered
-	// from the hall effect sensors
-	frontTurn.move(FullTurn);
-	while (analogRead(FrontRst) >= TrigPoint)
-	{
-		frontTurn.run();
-	}
-	frontTurn.setCurrentPosition(0);
+  rightSlide.move(100000000);
+  while (digitalRead(RightSw) == LOW)
+  {
+    rightSlide.run();
+  }
+  rightSlide.setCurrentPosition(0);
+#endif
+  // resets the position of the four turning
+  // motors on top using te data gathered
+  // from the hall effect sensors
+  frontTurn.move(FullTurn);
+  while (analogRead(FrontRst) < TrigPoint)
+  {
+    frontTurn.run();
+  }
+  frontTurn.setCurrentPosition(0);
+  //Serial.println("frontTurn Stopped!");
 
-	backTurn.move(FullTurn);
-	while (analogRead(BackRst) >= TrigPoint)
-	{
-		backTurn.run();
-	}
-	backTurn.setCurrentPosition(0);
-		
-	leftTurn.move(FullTurn);
-	while (analogRead(LeftRst) >= TrigPoint)
-	{
-		leftTurn.run();
-	}
-	leftTurn.setCurrentPosition(0);
+  backTurn.move(FullTurn);
+  while (analogRead(BackRst) < TrigPoint)
+  {
+    backTurn.run();
+  }
+  backTurn.setCurrentPosition(0);
+  //Serial.println("backTurn Stopped!");
+   
+  leftTurn.move(FullTurn);
+  while (analogRead(LeftRst) < TrigPoint)
+  {
+    leftTurn.run();
+  }
+  leftTurn.setCurrentPosition(0);
+  //Serial.println("leftTurn Stopped!");
 
-	rightTurn.move(FullTurn);
-	while (analogRead(RightRst) >= TrigPoint)
-	{
-		rightTurn.run();
-	}
-	rightTurn.setCurrentPosition(0);
+  rightTurn.move(FullTurn);
+  while (analogRead(RightRst) < TrigPoint)
+  {
+    rightTurn.run();
+  }
+  rightTurn.setCurrentPosition(0);
+  //Serial.println("rightTurn Stopped!");
 
-	// Change these to suit your stepper if you want
-	frontTurn.setEnablePin(30);
-	frontTurn.setMaxSpeed(MaxSpeed);
-	frontTurn.setAcceleration(MaxAccel);
+  // Change these to suit your stepper if you want
+  frontTurn.setEnablePin(30);
+  frontTurn.setMaxSpeed(MaxSpeed);
+  frontTurn.setAcceleration(MaxAccel);
 
-	frontSlide.setEnablePin(31);
-	frontSlide.setMaxSpeed(MaxSpeed);
-	frontSlide.setAcceleration(MaxAccel);
+  frontSlide.setEnablePin(31);
+  frontSlide.setMaxSpeed(MaxSpeed);
+  frontSlide.setAcceleration(MaxAccel);
 
-	backTurn.setEnablePin(32);
-	backTurn.setMaxSpeed(MaxSpeed);
-	backTurn.setAcceleration(MaxAccel);
+  backTurn.setEnablePin(32);
+  backTurn.setMaxSpeed(MaxSpeed);
+  backTurn.setAcceleration(MaxAccel);
 
-	backSlide.setEnablePin(33);
-	backSlide.setMaxSpeed(MaxSpeed);
-	backSlide.setAcceleration(MaxAccel);
+  backSlide.setEnablePin(33);
+  backSlide.setMaxSpeed(MaxSpeed);
+  backSlide.setAcceleration(MaxAccel);
 
-	leftTurn.setEnablePin(34);
-	leftTurn.setMaxSpeed(MaxSpeed);
-	leftTurn.setAcceleration(MaxAccel);
+  leftTurn.setEnablePin(34);
+  leftTurn.setMaxSpeed(MaxSpeed);
+  leftTurn.setAcceleration(MaxAccel);
 
-	leftSlide.setEnablePin(35);
-	leftSlide.setMaxSpeed(MaxSpeed);
-	leftSlide.setAcceleration(MaxAccel);
+  leftSlide.setEnablePin(35);
+  leftSlide.setMaxSpeed(MaxSpeed);
+  leftSlide.setAcceleration(MaxAccel);
 
-	rightTurn.setEnablePin(36);
-	rightTurn.setMaxSpeed(MaxSpeed);
-	rightTurn.setAcceleration(MaxAccel);
+  rightTurn.setEnablePin(36);
+  rightTurn.setMaxSpeed(MaxSpeed);
+  rightTurn.setAcceleration(MaxAccel);
 
-	rightSlide.setEnablePin(37);
-	rightSlide.setMaxSpeed(MaxSpeed);
-	rightSlide.setAcceleration(MaxAccel);
+  rightSlide.setEnablePin(37);
+  rightSlide.setMaxSpeed(MaxSpeed);
+  rightSlide.setAcceleration(MaxAccel);
   //frontSlide.move(CalibrationDist);
   //frontSlide.runToPosition();
   //while (digitalRead(FrontSw) == LOW)
@@ -834,6 +809,8 @@ void initMotors()
   //  rightSlide.run();
   //}
   //rightSlide.move(SlideDist);
+  
+  //Serial.println("initMotor Done!");
 }
 
 // twelve different functions below executes the solving 
@@ -841,80 +818,74 @@ void initMotors()
 // also takes in account the next move to increase efficiency.
 void frontClockwise()
 {
-	int n = 0;
-	do
-	{
-		frontTurn.move(-TurnDist);
-		frontTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'E');
+  int n = 0;
+  do
+  {
+    frontTurn.move(-TurnDist);
+    frontTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'E');
 
-	frontSlide.move(-SlideDist);
-	frontSlide.runToPosition();
+  frontSlide.move(-SlideDist);
+  frontSlide.runToPosition();
 
-	if (n % 2 != 0)
-	{
-		frontTurn.move(TurnDist * n);
-		frontTurn.runToPosition();
+  if (n != 2)
+    frontTurn.move(TurnDist * n);
+  frontTurn.runToPosition();
 
-		frontSlide.move(SlideDist);
-		frontSlide.runToPosition();
-	}
+  frontSlide.move(SlideDist);
+  frontSlide.runToPosition();
 }
 
 void frontAnticlockwise()
 {
-	int n = 0;
-	do
-	{
-		frontTurn.move(TurnDist);
-		frontTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'F');
+  int n = 0;
+  do
+  {
+    frontTurn.move(TurnDist);
+    frontTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'F');
 
-	frontSlide.move(-SlideDist);
-	frontSlide.runToPosition();
+  frontSlide.move(-SlideDist);
+  frontSlide.runToPosition();
 
-	if (n % 2 != 0)
-	{
-		frontTurn.move(-TurnDist * n);
-		frontTurn.runToPosition();
+  if (n != 2)
+    frontTurn.move(-TurnDist * n);
+  frontTurn.runToPosition();
 
-		frontSlide.move(SlideDist);
-		frontSlide.runToPosition();
-	}
+  frontSlide.move(SlideDist);
+  frontSlide.runToPosition();
 }
 
 void backClockwise()
 {
-	int n = 0;
-	do
-	{
-		backTurn.move(-TurnDist);
-		backTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'G');
+  int n = 0;
+  do
+  {
+    backTurn.move(-TurnDist);
+    backTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'G');
 
-	backSlide.move(-SlideDist);
-	backSlide.runToPosition();
+  backSlide.move(-SlideDist);
+  backSlide.runToPosition();
 
-	if (n % 2 != 0)
-	{
-		backTurn.move(TurnDist * n);
-		backTurn.runToPosition();
+  if (n != 2)
+    backTurn.move(TurnDist * n);
+  backTurn.runToPosition();
 
-		backSlide.move(SlideDist);
-		backSlide.runToPosition();
-	}
+  backSlide.move(SlideDist);
+  backSlide.runToPosition();
 }
 
 void backAnticlockwise()
@@ -923,7 +894,7 @@ void backAnticlockwise()
   do
   {
     backTurn.move(TurnDist);
-	backTurn.runToPosition();
+  backTurn.runToPosition();
     nCounter++;
     if (nCounter > nTotalStep)
       break;
@@ -933,281 +904,295 @@ void backAnticlockwise()
   backSlide.move(-SlideDist);
   backSlide.runToPosition();
 
-  if (n % 2 != 0)
-  {
-	  backTurn.move(-TurnDist * n);
-	  backTurn.runToPosition();
+  if (n != 2)
+  backTurn.move(-TurnDist * n);
+  backTurn.runToPosition();
 
-	  backSlide.move(SlideDist);
-	  backSlide.runToPosition();
-  }
+  backSlide.move(SlideDist);
+  backSlide.runToPosition();
 }
 
 void leftClockwise()
 {
-	int n = 0;
-	do
-	{
-		leftTurn.move(-TurnDist);
-		leftTurn.runToPosition();
+  int n = 0;
+  do
+  {
+    leftTurn.move(-TurnDist);
+    leftTurn.runToPosition();
 
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'I');
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'I');
 
-	leftSlide.move(-SlideDist);
-	leftSlide.runToPosition();
+  leftSlide.move(-SlideDist);
+  leftSlide.runToPosition();
 
-	if (n % 2 != 0)
-	{
-		leftTurn.move(TurnDist * n);
-		leftTurn.runToPosition();
+  if (n != 2)
+    leftTurn.move(TurnDist * n);
+  leftTurn.runToPosition();
 
-		leftSlide.move(SlideDist);
-		leftSlide.runToPosition();
-	}
+  leftSlide.move(SlideDist);
+  leftSlide.runToPosition();
 }
 
 void leftAnticlockwise()
 {
-	int n = 0;
-	do
-	{
-		leftTurn.move(TurnDist);
-		leftTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'J');
+  int n = 0;
+  do
+  {
+    leftTurn.move(TurnDist);
+    leftTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'J');
 
-	leftSlide.move(-SlideDist);
-	leftSlide.runToPosition();
+  leftSlide.move(-SlideDist);
+  leftSlide.runToPosition();
 
-	if (n % 2 != 0)
-	{
-		leftTurn.move(-TurnDist * n);
-		leftTurn.runToPosition();
+  if (n != 2)
+  leftTurn.move(-TurnDist * n);
+  leftTurn.runToPosition();
 
-		leftSlide.move(SlideDist);
-		leftSlide.runToPosition();
-	}
+  leftSlide.move(SlideDist);
+  leftSlide.runToPosition();
 }
 
 void rightClockwise()
 {
-	int n = 0;
-	do
-	{
-		rightTurn.move(-TurnDist);
-		rightTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'K');
+  int n = 0;
+  do
+  {
+    rightTurn.move(-TurnDist);
+    rightTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'K');
 
-	rightSlide.move(-SlideDist);
-	rightSlide.runToPosition();
+  rightSlide.move(-SlideDist);
+  rightSlide.runToPosition();
 
-	if (n % 2 != 0)
-	{
-		rightTurn.move(TurnDist * n);
-		rightTurn.runToPosition();
+  if (n != 2)
+    rightTurn.move(TurnDist * n);
+  rightTurn.runToPosition();
 
-		rightSlide.move(SlideDist);
-		rightSlide.runToPosition();
-	}
+  rightSlide.move(SlideDist);
+  rightSlide.runToPosition();
 }
 
 void rightAnticlockwise()
 {
-	int n = 0;
-	do
-	{
-		rightTurn.move(TurnDist);
-		rightTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'L');
+  int n = 0;
+  do
+  {
+    rightTurn.move(TurnDist);
+    rightTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'L');
 
-	rightSlide.move(-SlideDist);
-	rightSlide.runToPosition();
+  rightSlide.move(-SlideDist);
+  rightSlide.runToPosition();
 
-	if (n % 2 != 0)
-	{
-		rightTurn.move(-TurnDist * n);
-		rightTurn.runToPosition();
+  if(n != 2)
+    rightTurn.move(-TurnDist * n);
+  rightTurn.runToPosition();
 
-		rightSlide.move(SlideDist);
-		rightSlide.runToPosition();
-	}
+  rightSlide.move(SlideDist);
+  rightSlide.runToPosition();
 }
 
 void topClockwise()
 {
-	int n = 0;
+  int n = 0;
 
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
-	TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 
-	do
-	{
-		frontTurn.move(-TurnDist);
-		frontTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'A');
+  do
+  {
+    frontTurn.move(-TurnDist);
+    frontTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'A');
 
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
 
-	frontTurn.move(n * TurnDist);
-	frontTurn.runToPosition();
+  frontTurn.move(n * TurnDist);
+  frontTurn.runToPosition();
 
-	TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 }
 
 void topAnticlockwise()
 {
-	int n = 0;
+  int n = 0;
 
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
-	TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 
-	do
-	{
-		backTurn.move(-TurnDist);
-		backTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'B');
+  do
+  {
+    backTurn.move(-TurnDist);
+    backTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'B');
 
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
 
-	backTurn.move(n * TurnDist);
-	backTurn.runToPosition();
+  backTurn.move(n * TurnDist);
+  backTurn.runToPosition();
 
-	TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 }
 
 void bottomClockwise()
 {
-	int n = 0;
+  int n = 0;
 
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
-	TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 
-	do
-	{
-		frontTurn.move(-TurnDist);
-		frontTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'C');
+  do
+  {
+    frontTurn.move(-TurnDist);
+    frontTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'C');
 
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
 
-	frontTurn.move(n * TurnDist);
-	frontTurn.runToPosition();
+  frontTurn.move(n * TurnDist);
+  frontTurn.runToPosition();
 
-	TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 }
 
 void bottomAnticlockwise()
 {
-	int n = 0;
+  int n = 0;
 
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
-	TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 
-	do
-	{
-		backTurn.move(-TurnDist);
-		backTurn.runToPosition();
-		nCounter++;
-		if (nCounter > nTotalStep)
-			break;
-		n++;
-	} while (chSequence[nCounter] == 'D');
+  do
+  {
+    backTurn.move(-TurnDist);
+    backTurn.runToPosition();
+    nCounter++;
+    if (nCounter > nTotalStep)
+      break;
+    n++;
+  } while (chSequence[nCounter] == 'D');
 
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
 
-	backTurn.move(n * TurnDist);
-	backTurn.runToPosition();
+  backTurn.move(n * TurnDist);
+  backTurn.runToPosition();
 
-	TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
-	SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+  SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
+  TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
+  SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
 }
 
 // these two functions are made for convenience in programming the
 // top two functions, which use these extensively.
 void SlideTwoMotors(byte Motor1, byte Motor2, byte Direction, int nSteps)
 {
-	if (Motor1 == Motor2)
-		return;
+  if (Motor1 == Motor2)
+    return;
 
-	if (Direction > GoAntiClockwise && Direction > GoClockwise)
-		return;
+  if (Direction > GoAntiClockwise && Direction > GoClockwise)
+    return;
 
-	if (Direction == GoClockwise)
-	{
-		pmotor[Motor1]->move(nSteps);
-		pmotor[Motor2]->move(nSteps);
-	}
-	else
-	{
-		pmotor[Motor1]->move(-nSteps);
-		pmotor[Motor2]->move(-nSteps);
-	}
+  if (Direction == GoClockwise)
+  {
+    pmotor[Motor1]->move(nSteps);
+    pmotor[Motor2]->move(nSteps);
+  }
+  else
+  {
+    pmotor[Motor1]->move(-nSteps);
+    pmotor[Motor2]->move(-nSteps);
+  }
 
-	while (pmotor[Motor1]->distanceToGo() != 0 || pmotor[Motor2]->distanceToGo() != 0)
-	{
-		pmotor[Motor1]->run();
-		pmotor[Motor2]->run();
-	}
+  while (pmotor[Motor1]->distanceToGo() != 0 || pmotor[Motor2]->distanceToGo() != 0)
+  {
+    pmotor[Motor1]->run();
+    pmotor[Motor2]->run();
+  }
 }
 
 void TurnTwoMotors(byte Motor1, byte Motor2, byte Direction, int nSteps)
 {
-	if (Motor1 == Motor2)
-		return;
+  if (Motor1 == Motor2)
+    return;
 
-	if (Direction > GoAntiClockwise && Direction > GoClockwise)
-		return;
+  if (Direction > GoAntiClockwise && Direction > GoClockwise)
+    return;
 
-	if (Direction == 0 && Direction != 1)
-	{
-		pmotor[Motor1]->move(nSteps);
-		pmotor[Motor2]->move(-nSteps);
-	}
-	else
-	{
-		pmotor[Motor1]->move(-nSteps);
-		pmotor[Motor2]->move(nSteps);
-	}
+  if (Direction == 0 && Direction != 1)
+  {
+    pmotor[Motor1]->move(nSteps);
+    pmotor[Motor2]->move(-nSteps);
+  }
+  else
+  {
+    pmotor[Motor1]->move(-nSteps);
+    pmotor[Motor2]->move(nSteps);
+  }
 
-	while (pmotor[Motor1]->distanceToGo() != 0 || pmotor[Motor2]->distanceToGo() != 0)
-	{
-		pmotor[Motor1]->run();
-		pmotor[Motor2]->run();
-	}
+  while (pmotor[Motor1]->distanceToGo() != 0 || pmotor[Motor2]->distanceToGo() != 0)
+  {
+    pmotor[Motor1]->run();
+    pmotor[Motor2]->run();
+  }
 }
 
 //void topClockwise()
