@@ -22,8 +22,8 @@ const int ts = 140;
 const int m = 45;
 const int w = 1280;
 const int h = 720;
-stringstream net;
 Mat img;
+char net[55] = {0};
 
 bool confirm(int s, string c)
 {
@@ -165,11 +165,31 @@ int main()
             if (colours.find('U')==string::npos) {
                 serialPrintf(serial, "done_side");
                 done_side = true;
+                switch(i){
+                    case 0:
+                        strcpy(net[45], colours);
+                        break;
+                    case 1:
+                        strcpy(net[0], colours);
+                        break;
+                    case 2:
+                        strcpy(net[9], colours);
+                        break;
+                    case 3:
+                        strcpy(net[27], colours);
+                        break;
+                    case 4:
+                        strcpy(net[18], colours);
+                        break;
+                    case 5:
+                        strcpy(net[36], colours);
+                        break;
+                }
                 
             }
         }
     }
-
+    
 
     return 0;
 }
