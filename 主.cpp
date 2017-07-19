@@ -93,6 +93,18 @@ char cchar(Scalar scalar) {
     }
 }
 
+vector<string> split(string input, string delimiter)
+{
+    vector<string> result;
+    size_t pos = 0;
+    while ((pos = input.find(delimiter))!=string::npos)
+    {
+        result.push_back(input.substr(0, pos));
+        input.erase(0, pos+delimiter.length());
+    }
+    return result;
+}
+
 int main()
 {
     raspicam::RaspiCam Camera;
@@ -202,7 +214,25 @@ int main()
         }
         //scan_cube done
         cout<<net;
-        shared_ptr<FILE> pipe(popen("./kociemba", "r"), pclose);
+        char nU = net[4];
+        char nR = net[13];
+        char nF = net[22];
+        char nD = net[31];
+        char nL = net[40];
+        char nB = net[49];
+        for (i=0;i<net.length();i++)
+        {
+            switch (net[i])
+            {
+                case nU: net[i]='U';
+                case nR: net[i]='R';
+                case nF: net[i]='F';
+                case nD: net[i]='D';
+                case nL: net[i]='L';
+                case nB: net[i]='B';
+            }
+        }
+        shared_ptr<FILE> pipe(popen("./kociemba "+net, "r"), pclose);
         if (!pipe) return 1;
         while (!feof(pipe.get()))
         {
@@ -211,6 +241,16 @@ int main()
             }
         }
         cout<<result;
+        if (result=="Unsolvable cube!") continue;
+        vector<string> moves = split(result, " ");
+        char solution[moves.size()+1];
+        for (i=0;i<moves.size();i++)
+        {
+            switch (moves[i])
+            {
+                //TBA
+            }
+        }
         serialPrintf(result);
     }
 }

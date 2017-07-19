@@ -1,17 +1,26 @@
 #include <iostream>
 #include <memory>
 #include <array>
+#include <vector>
+using namespace std;
+vector<string> split(string input, string delimiter)
+{
+    vector<string> result;
+    size_t pos = 0;
+    while ((pos = input.find(delimiter))!=string::npos)
+    {
+        result.push_back(input.substr(0, pos));
+        input.erase(0, pos+delimiter.length());
+    }
+    return result;
+}
+
 int main()
 {
-    std::array<char,128> buffer;
-    std::string result;
-    std::shared_ptr<FILE> pipe(popen("cat 'rubikcubeidkimbad;-;'.cpp", "r"), pclose);
-    if (!pipe) return 1;
-    while (!feof(pipe.get()))
+    vector<string> splitted = split("A B C DE FG", " ");
+    for (int i=0;i<splitted.size();i++)
     {
-        if (fgets(buffer.data(), 128, pipe.get()) != nullptr){
-            result=buffer.data();
-        }
+        cout<<splitted[i]<<endl;
     }
-    std::cout<<result;
+    return 0;
 }
