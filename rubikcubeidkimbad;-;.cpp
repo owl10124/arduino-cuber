@@ -1,5 +1,6 @@
 //lame program to generate test cases for the kociemba thingy, 
-//set input as UUUUUUUUUFFFFFFFFFDDDDDDDDDRRRRRRRRRBBBBBBBBBLLLLLLLLL first for the normal cube
+//set input as UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB first for the normal cube (same as kociemba)
+//can be used to check if the solution works by inputting the same test case in both programs and typing the sequence of moves
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
@@ -299,7 +300,19 @@ int main(){
     links[52] = 21;
 
     //queue<char> sequenceofmoves;
-    for (int i =0 ; i < 54; i++){
+    for (int i =0 ; i < 9; i++){
+        scanf(" %c",&apple[i]);
+    }
+    for (int i =27 ; i < 36; i++){
+        scanf(" %c",&apple[i]);
+    }
+    for (int i =9 ; i < 27; i++){
+        scanf(" %c",&apple[i]);
+    }
+    for (int i = 45; i < 54; i++){
+        scanf(" %c",&apple[i]);
+    }
+    for (int i = 36 ; i < 45; i++){
         scanf(" %c",&apple[i]);
     }
 
@@ -358,13 +371,13 @@ int main(){
 
             }
         }
-            printf("\nsolution so far is: ");
+            printf("\nsolution (moves reversed) so far is: ");
             for (int i = 0; i < solution.size(); i++){
                 printf("%c",solution[i]);
             }
 
 
-        printf("\n");
+        printf("\n\n");
 
     }
     // */
