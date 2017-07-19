@@ -105,6 +105,17 @@ vector<string> split(string input, string delimiter)
     return result;
 }
 
+string replace (string input, string from, string to)
+{
+    size_t start;
+    start = 0;
+    while ((start = result.find(from, start)))
+    {
+        result.replace(start, from.length, to);
+        start+=to.length;
+    }
+}
+
 int main()
 {
     raspicam::RaspiCam Camera;
@@ -242,15 +253,35 @@ int main()
         }
         cout<<result;
         if (result=="Unsolvable cube!") continue;
+        result = replace(result, "U2", "U U");
+        result = replace(result, "D2", "D D");
+        result = replace(result, "L2", "L L");
+        result = replace(result, "R2", "R R");
+        result = replace(result, "F2", "F F");
+        result = replace(result, "B2", "B B");
+
         vector<string> moves = split(result, " ");
+
         char solution[moves.size()+1];
         for (i=0;i<moves.size();i++)
         {
             switch (moves[i])
             {
-                //TBA
+                case "U": solution[i]='A';
+                case "U'": solution[i]='B';
+                case "D": solution[i]='C';
+                case "D'": solution[i]='D';
+                case "F": solution[i]='E';
+                case "F'": solution[i]='F';
+                case "B": solution[i]='G';
+                case "B'": solution[i]='H';
+                case "L": solution[i]='I';
+                case "L'": solution[i]='J';
+                case "R": solution[i]='K';
+                case "R'": solution[i]='L';
             }
         }
-        serialPrintf(result);
+        solution[moves.size()]='\0';
+        serialPrintf(solution);
     }
 }
