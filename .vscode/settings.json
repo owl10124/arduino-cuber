@@ -4,6 +4,9 @@
         "iosfwd": "cpp",
         "fstream": "cpp",
         "locale": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "cstddef": "cpp",
+        "iostream": "cpp",
+        "array": "cpp"
     }
 }

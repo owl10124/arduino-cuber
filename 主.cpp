@@ -7,6 +7,7 @@
 #include <wiringSerial.h>
 #include <raspicam/raspicam_cv.h>
 #include <array>
+#include <memory>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 using namespace std;
@@ -18,6 +19,8 @@ int serial;
 char buffer;
 string input;
 int i,j,k;
+array<char,128> pipe_buffer;
+string result;
 const int ts = 140;
 const int m = 45;
 const int w = 1280;
@@ -114,82 +117,100 @@ int main()
         printf("Cannot start pi\n");
         return 1;
     }
+    while (true) 
+    {
+        if (!confirm(serial, "ready")) return 1;
 
-    if (!confirm(serial, "ready")) return 1;
+        serialPrintf(serial, "pi_is_ready");
+        
+        if (!confirm(serial, "scan_cube")) return 1;
 
-    serialPrintf(serial, "pi_is_ready");
-    
-    if (!confirm(serial, "scan_cube")) return 1;
+        net = "";
 
-    for (int i=0; i<6; i++){
-        if (!confirm(serial, "scan")) return 1;
-        done_side = false;
-        while (!done_side){
-            Camera.grab();
-            Camera.retrieve(img);
-            char colours[10];
-            colours[9]='\0';
-            if (!img.data){
-                cout<<"No data.\n";
-                return 1;
-            }
-            for (k=-1;k<2;k++){
-                for (j=-1;j<2;j++){
-                    
-                    int b[2];
-                    //cout<<"Tile ("<<i<<", "<<j<<"):\n";
-                    b[0]=(w-ts)/2+(i*(ts+m));
-                    b[1]=(h-ts)/2+(j*(ts+m));
-                    Rect mask(b[0], b[1], ts, ts);
-                    Mat tile = img(mask);
-                    Scalar colour = mean(tile);
-                    //imwrite("tile"+to_string((i+1)*3+j+1)+".jpg", tile);
-                    
-                    /*
-                    Mat colourTile = img(Rect(0, 0, 10, 10));
-                    colourTile.setTo(colour);
-                    imwrite("colour"+to_string((i+1)*3+j+1)+".jpg", colourTile);
-                    */
-                    
-                    colours[(i+1)*3+j+1]=cchar(colour);
-                    
-                    /*
-                    cout<<"x: "<<b[0]<<"\n";
-                    cout<<"y: "<<b[1]<<"\n";
-                    cout<<"x2: "<<b[0]+ts<<"\n";
-                    cout<<"y2: "<<b[1]+ts<<"\n";
-                    cout<<"\n";
-                    */
+        for (int i=0; i<6; i++){
+            if (!confirm(serial, "scan")) return 1;
+            done_side = false;
+            while (!done_side)
+            {
+                Camera.grab();
+                Camera.retrieve(img);
+                char colours[10];
+                colours[9]='\0';
+                if (!img.data)
+                {
+                    cout<<"No data.\n";
+                    return 1;
                 }
-            }
-            if (colours.find('U')==string::npos) {
-                serialPrintf(serial, "done_side");
-                done_side = true;
-                switch(i){
-                    case 0:
-                        strcpy(net[45], colours);
-                        break;
-                    case 1:
-                        strcpy(net[0], colours);
-                        break;
-                    case 2:
-                        strcpy(net[9], colours);
-                        break;
-                    case 3:
-                        strcpy(net[27], colours);
-                        break;
-                    case 4:
-                        strcpy(net[18], colours);
-                        break;
-                    case 5:
-                        strcpy(net[36], colours);
-                        break;
+                for (k=-1;k<2;k++)
+                {
+                    for (j=-1;j<2;j++)
+                    {
+                        
+                        int b[2];
+                        //cout<<"Tile ("<<i<<", "<<j<<"):\n";
+                        b[0]=(w-ts)/2+(i*(ts+m));
+                        b[1]=(h-ts)/2+(j*(ts+m));
+                        Rect mask(b[0], b[1], ts, ts);
+                        Mat tile = img(mask);
+                        Scalar colour = mean(tile);
+                        //imwrite("tile"+to_string((i+1)*3+j+1)+".jpg", tile);
+                        
+                        /*
+                        Mat colourTile = img(Rect(0, 0, 10, 10));
+                        colourTile.setTo(colour);
+                        imwrite("colour"+to_string((i+1)*3+j+1)+".jpg", colourTile);
+                        */
+                        
+                        colours[(i+1)*3+j+1]=cchar(colour);
+                        
+                        /*
+                        cout<<"x: "<<b[0]<<"\n";
+                        cout<<"y: "<<b[1]<<"\n";
+                        cout<<"x2: "<<b[0]+ts<<"\n";
+                        cout<<"y2: "<<b[1]+ts<<"\n";
+                        cout<<"\n";
+                        */
+                    }
                 }
-                
+                if (colours.find('U')==string::npos) 
+                {
+                    serialPrintf(serial, "done_side");
+                    done_side = true;
+                    switch(i){
+                        case 0: //bottom
+                            strcpy(net[27], colours);
+                            break;
+                        case 1: //top
+                            strcpy(net[0], colours);
+                            break;
+                        case 2: //left
+                            strcpy(net[36], colours);
+                            break;
+                        case 3: //right
+                            strcpy(net[9], colours);
+                            break;
+                        case 4: //front
+                            strcpy(net[18], colours);
+                            break;
+                        case 5: //back
+                            strcpy(net[45], colours);
+                            break;
+                    }
+
+                }
             }
         }
-    }
-    
+        //scan_cube done
 
-    return 0;
+        shared_ptr<FILE> pipe(popen("./kociemba", "r"), pclose);
+        if (!pipe) return 1;
+        while (!feof(pipe.get()))
+        {
+            if (fgets(pipe_buffer.data(), 128, pipe.get()) != nullptr){
+                result=pipe_buffer.data();
+            }
+        }
+        std::cout<<result;
+        serialPrintf(result);
+    }
 }
