@@ -201,7 +201,7 @@ int main()
             }
         }
         //scan_cube done
-
+        cout<<net;
         shared_ptr<FILE> pipe(popen("./kociemba", "r"), pclose);
         if (!pipe) return 1;
         while (!feof(pipe.get()))
@@ -210,7 +210,7 @@ int main()
                 result=pipe_buffer.data();
             }
         }
-        std::cout<<result;
+        cout<<result;
         serialPrintf(result);
     }
 }
