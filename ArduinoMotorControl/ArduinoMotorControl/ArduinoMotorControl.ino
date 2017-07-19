@@ -18,9 +18,9 @@
 #define RightSw 46
 
 #define FrontRst A0
-#define BackRst A1
+#define BackRst A3
 #define LeftRst A2
-#define RightRst A3
+#define RightRst A1
 
 #define CalibrationDist -20000
 #define FullTurn 1600
