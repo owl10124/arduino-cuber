@@ -1,3 +1,6 @@
+//lame program to generate test cases for the kociemba thingy, 
+//set input as UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB first for the normal cube (same as kociemba)
+//can be used to check if the solution works by inputting the same test case in both programs and typing the sequence of moves
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
@@ -37,7 +40,7 @@ void back_turn_ac(){
     back_turn_c();
     back_turn_c();
     back_turn_c();
-	//REALLY 
+
 }
 void down_turn_c(){
     char temp = apple[21];
@@ -71,7 +74,6 @@ void down_turn_ac(){
     down_turn_c();
     down_turn_c();
     down_turn_c();
-	//SERIOUSLY, I EXPECTED MORE FROM YOU
 }
 void left_turn_c(){
 
@@ -107,7 +109,6 @@ void left_turn_ac(){
     left_turn_c();
     left_turn_c();
     left_turn_c();
-	// I GIVE UP
 }
 void up_turn_c(){
     char temp = apple[0];
@@ -140,8 +141,7 @@ void up_turn_ac(){
     up_turn_c();
     up_turn_c();
     up_turn_c();
-	// I AUTHORISE YOU TO GET A CUBE ALGORITMN FORM SOMEWHERE
-    // if you're doing this then at least use a tilapiaing for loop
+
 }
 void right_turn_c(){
   char temp = apple[27];
@@ -175,7 +175,7 @@ void right_turn_ac(){
     right_turn_c();
     right_turn_c();
     right_turn_c();
-	// BCOS THIS IS ABSOLUTE RUBBISH
+
 }
 void front_turn_c(){
   char temp = apple[9];
@@ -209,9 +209,10 @@ void front_turn_ac(){
     front_turn_c();
     front_turn_c();
     front_turn_c();
-	// JUST FRIGGIN GET A CODE ALREADY
+
 
 }
+
 void print_faces(){
     printf("%c %c %c\n",apple[0],apple[1],apple[2]);
     printf("%c %c %c\n",apple[3],apple[4],apple[5]);
@@ -228,33 +229,159 @@ void print_faces(){
 
 
 }
-int main(){
+void turn_cube(int order){
+        if (order == 5) {front_turn_c(); printf("F");}
+        if (order == 6) {front_turn_ac(); printf("f");}
+        if (order == 11) {right_turn_c(); printf("R");}
+        if (order == 12) {right_turn_ac(); printf("r");}
+        if (order == 1) {up_turn_c(); printf("U");}
+        if (order == 2) {up_turn_ac(); printf("u");}
+        if (order == 9) {left_turn_c(); printf("L");}
+        if (order == 10) {left_turn_ac(); printf("l");}
+        if (order == 3) {down_turn_c(); printf("D");}
+        if (order == 4) {down_turn_ac(); printf("d");}
+        if (order == 7) {back_turn_c(); printf("B");}
+        if (order == 8) {back_turn_ac(); printf("b");}
+        //printf("%s\n",apple);
 
-    for (int i =0 ; i < 54; i++){
+
+}
+bool check_cube(){
+    //printf("%d\n",sizeof(apple));
+    char current;
+    for (int i=  0; i < sizeof(apple); i++){
+        int color = i/9;
+        switch(color){
+            case 0: current = 'Y'; break;
+            case 1: current = 'O'; break;
+            case 2: current = 'W'; break;
+            case 3: current = 'B'; break;
+            case 4: current = 'R'; break;
+            case 5: current = 'G'; break;
+        }
+            if (apple[i] != current) {
+                    //printf("%c (apple[%d]) does not match %c,false\n",apple[i],i,current);
+                    return false;
+            }
+        }
+        printf("YAY ^_^\n");
+        return true;
+
+
+    }
+
+
+int main(){
+    vector<char> solution;
+    int links[54];
+    links[1] = 37;
+    links[3] = 46;
+    links[5] = 28;
+    links[7] = 10;
+    links[10] = 7;
+    links[12] = 50;
+    links[14] = 30;
+    links[16] = 19;
+    links[19] = 16;
+    links[21] = 52;
+    links[23] = 34;
+    links[25] = 43;
+    links[28] = 5;
+    links[30] = 14;
+    links[32] = 39;
+    links[34] = 23;
+    links[37] = 1;
+    links[39] = 32;
+    links[41] = 48;
+    links[43] = 25;
+    links[46] = 3;
+    links[48] = 41;
+    links[50] = 12;
+    links[52] = 21;
+
+    //queue<char> sequenceofmoves;
+    for (int i =0 ; i < 9; i++){
+        scanf(" %c",&apple[i]);
+    }
+    for (int i =27 ; i < 36; i++){
+        scanf(" %c",&apple[i]);
+    }
+    for (int i =9 ; i < 27; i++){
+        scanf(" %c",&apple[i]);
+    }
+    for (int i = 45; i < 54; i++){
+        scanf(" %c",&apple[i]);
+    }
+    for (int i = 36 ; i < 45; i++){
         scanf(" %c",&apple[i]);
     }
 
 
-    print_faces();
-    /*
+
+    //print_faces();
+
+
+    printf("\n");
+    int k = 1;
+    for (k = 1; k < 55; k++){
+        //printf("%d\t",k);
+
+        //if (/*apple[k] == apple[4] && */k % 9 % 2 == 1) printf("%d (%c) %d (%c)\n",k,apple[k],links[k],apple[links[k]]);
+    }
+
+    /*for (int i = 1; i <= 12; i++){
+
+        if ((i) % 2 == 0){
+            turn_cube(i);
+            if (check_cube()) exit(0);
+            turn_cube(i-1);
+        }
+        else{
+             turn_cube(i);
+             if (check_cube()) exit(0);
+             turn_cube(i+1);
+        }
+
+    }*/
+    // /*
     char order;
     while (scanf(" %c",&order) != EOF){
-        if (order == 'F') front_turn_c();
-        if (order == 'f') front_turn_ac();
-        if (order == 'R') right_turn_c();
-        if (order == 'r') right_turn_ac();
-        if (order == 'U') up_turn_c();
-        if (order == 'u') up_turn_ac();
-        if (order == 'L') left_turn_c();
-        if (order == 'l') left_turn_ac();
-        if (order == 'D') down_turn_c();
-        if (order == 'd') down_turn_ac();
-        if (order == 'B') back_turn_c();
-        if (order == 'b') back_turn_ac();
-        print_faces();
+        if (order == 'F') {front_turn_c(); solution.push_back('F');solution.push_back('\'');}
+        if (order == 'f') {front_turn_ac(); solution.push_back('F');}
+        if (order == 'R') {right_turn_c(); solution.push_back('R');solution.push_back('\'');}
+        if (order == 'r') {right_turn_ac(); solution.push_back('R');}
+        if (order == 'U') {up_turn_c(); solution.push_back('U');solution.push_back('\'');}
+        if (order == 'u') {up_turn_ac(); solution.push_back('U');}
+        if (order == 'L') {left_turn_c(); solution.push_back('L');solution.push_back('\'');}
+        if (order == 'l') {left_turn_ac(); solution.push_back('L');}
+        if (order == 'D') {down_turn_c(); solution.push_back('D');solution.push_back('\'');}
+        if (order == 'd') {down_turn_ac(); solution.push_back('D');}
+        if (order == 'B') {back_turn_c(); solution.push_back('B');solution.push_back('\'');}
+        if (order == 'b') {back_turn_ac(); solution.push_back('B');}
+        for (int i = 0; i < 6; i++){
+            int startpoint = 0;
+            if (i == 0) startpoint = 0;
+            if (i == 1) startpoint = 27;
+            if (i == 2) startpoint = 9;
+            if (i == 3) startpoint = 18;
+            if (i == 4) startpoint = 45;
+            if (i == 5) startpoint = 36;
+            for (int j = startpoint; j < startpoint+9; j++){
+                printf("%c",apple[j]);
+
+            }
+        }
+            printf("\nsolution (moves reversed) so far is: ");
+            for (int i = 0; i < solution.size(); i++){
+                printf("%c",solution[i]);
+            }
+
+
+        printf("\n\n");
+
     }
-     */
-   // /*
+    // */
+    /*
      int scramble;
     scanf("%d",&scramble);
     queue<int> moves;
@@ -295,5 +422,5 @@ int main(){
 
 
 
- //*/
+ */
 }
