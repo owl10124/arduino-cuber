@@ -102,23 +102,26 @@ vector<string> split(string input, string delimiter)
         result.push_back(input.substr(0, pos));
         input.erase(0, pos+delimiter.length());
     }
+    result.push_back(input);
     return result;
 }
 
 string replace (string input, string from, string to)
 {
+    cout<<"replace \n";
     size_t start;
     start = 0;
-    while ((start = result.find(from, start)))
+    while ((start = input.find(from, start))!=string::npos)
     {
-        result.replace(start, from.length, to);
-        start+=to.length;
+        input.replace(start, from.length(), to);
+        start+=to.length();
     }
+    return input;
 }
 
 int main()
 {
-    raspicam::RaspiCam Camera;
+    raspicam::RaspiCam_Cv Camera;
 
     //camera stuff
     cout<<"Opening camera\n";
@@ -233,14 +236,12 @@ int main()
         char nB = net[49];
         for (i=0;i<net.length();i++)
         {
-            switch (net[i])
-            {
-                case nU: net[i]='U';
-                case nR: net[i]='R';
-                case nF: net[i]='F';
-                case nD: net[i]='D';
-                case nL: net[i]='L';
-                case nB: net[i]='B';
+                if (net[i] == nU) net[i]='U';
+                if (net[i] == nR) net[i]='R';
+                if (net[i] == nF) net[i]='F';
+                if (net[i] == nD) net[i]='D';
+                if (net[i] == nL) net[i]='L';
+                if (net[i] == nB) net[i]='B';
             }
         }
         shared_ptr<FILE> pipe(popen("./kociemba "+net, "r"), pclose);
@@ -260,26 +261,25 @@ int main()
         result = replace(result, "F2", "F F");
         result = replace(result, "B2", "B B");
 
-        vector<string> moves = split(result, " ");
+        cout<<result<<"\n";
 
+        vector<string> moves = split(result, " ");
         char solution[moves.size()+1];
         for (i=0;i<moves.size();i++)
         {
-            switch (moves[i])
-            {
-                case "U": solution[i]='A';
-                case "U'": solution[i]='B';
-                case "D": solution[i]='C';
-                case "D'": solution[i]='D';
-                case "F": solution[i]='E';
-                case "F'": solution[i]='F';
-                case "B": solution[i]='G';
-                case "B'": solution[i]='H';
-                case "L": solution[i]='I';
-                case "L'": solution[i]='J';
-                case "R": solution[i]='K';
-                case "R'": solution[i]='L';
-            }
+                cout<<moves[i]<<"\n";
+                if (moves[i]== "U") solution[i]='A';
+                else if (moves[i]== "U'") solution[i]='B';
+                else if (moves[i]== "D") solution[i]='C';
+                else if (moves[i]== "D'") solution[i]='D';
+                else if (moves[i]== "F") solution[i]='E';
+                else if (moves[i]== "F'") solution[i]='F';
+                else if (moves[i]== "B") solution[i]='G';
+                else if (moves[i]== "B'") solution[i]='H';
+                else if (moves[i]== "L") solution[i]='I';
+                else if (moves[i]== "L'") solution[i]='J';
+                else if (moves[i]== "R") solution[i]='K';
+                else if (moves[i]== "R'") solution[i]='L';
         }
         solution[moves.size()]='\0';
         serialPrintf(solution);

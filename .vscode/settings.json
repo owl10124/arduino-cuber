@@ -8,6 +8,10 @@
         "cstddef": "cpp",
         "iostream": "cpp",
         "array": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "string": "cpp",
+        "__split_buffer": "cpp",
+        "deque": "cpp",
+        "vector": "cpp"
     }
 }
