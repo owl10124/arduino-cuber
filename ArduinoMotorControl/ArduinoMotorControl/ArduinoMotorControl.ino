@@ -8,8 +8,8 @@
 #include <Stepper.h>
 #include <AccelStepper.h>
 
-#define MotorCalSw 42
-#define StartSw 43
+#define MotorCalSw 40
+#define StartSw 42
 #define HoldCubeSw 44
 
 #define FrontSw 47
