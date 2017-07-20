@@ -3,9 +3,11 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+/*
 #include <wiringPi.h>
 #include <wiringSerial.h>
 #include <raspicam/raspicam_cv.h>
+*/
 #include <array>
 #include <memory>
 #include <opencv2/core.hpp>
@@ -14,7 +16,7 @@ using namespace std;
 using namespace cv;
 
 bool done_side = false;
-string path = "/dev/ttyUSB0"; //idek work it out yourself
+const char* path = "/dev/ttyUSB0"; //idek work it out yourself
 int serial;
 char buffer;
 string input;
@@ -30,6 +32,7 @@ char net[55] = {0};
 
 bool confirm(int s, string c)
 {
+    #if 0
     input = "";
 
     while (!serialDataAvail(s))
@@ -44,6 +47,8 @@ bool confirm(int s, string c)
     }
 
     return (input==c);
+    #endif
+    return 1;
 }
 
 string readFile(fstream strm)
@@ -58,7 +63,7 @@ string readFile(fstream strm)
             result<<buffer;
             buffer="";
         }
-        return result;
+        return result.str();
     }
     else
     {
@@ -121,6 +126,7 @@ string replace (string input, string from, string to)
 
 int main()
 {
+    #if 0
     raspicam::RaspiCam_Cv Camera;
 
     //camera stuff
@@ -143,21 +149,24 @@ int main()
         printf("Cannot start pi\n");
         return 1;
     }
+    #endif
+    cout<<"Hi"<<"\n";
     while (true) 
     {
         if (!confirm(serial, "ready")) return 1;
 
-        serialPrintf(serial, "pi_is_ready");
+        //serialPrintf(serial, "pi_is_ready");
         
         if (!confirm(serial, "scan_cube")) return 1;
 
-        net = "";
+        strcpy(net, "");
 
         for (int i=0; i<6; i++){
             if (!confirm(serial, "scan")) return 1;
             done_side = false;
             while (!done_side)
             {
+                #if 0
                 Camera.grab();
                 Camera.retrieve(img);
                 char colours[10];
@@ -225,8 +234,11 @@ int main()
 
                 }
             }
+            #endif
+            done_side = true;
         }
         //scan_cube done
+        strcpy(net, "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB");
         cout<<net;
         char nU = net[4];
         char nR = net[13];
@@ -234,7 +246,7 @@ int main()
         char nD = net[31];
         char nL = net[40];
         char nB = net[49];
-        for (i=0;i<net.length();i++)
+        for (i=0;i<strlen(net);i++)
         {
                 if (net[i] == nU) net[i]='U';
                 if (net[i] == nR) net[i]='R';
@@ -244,7 +256,7 @@ int main()
                 if (net[i] == nB) net[i]='B';
             }
         }
-        shared_ptr<FILE> pipe(popen("./kociemba "+net, "r"), pclose);
+        shared_ptr<FILE> pipe(popen((string("kociemba ")+net).c_str(), "r"), pclose);
         if (!pipe) return 1;
         while (!feof(pipe.get()))
         {
@@ -282,6 +294,6 @@ int main()
                 else if (moves[i]== "R'") solution[i]='L';
         }
         solution[moves.size()]='\0';
-        serialPrintf(solution);
+        cout<<(solution);
     }
 }
