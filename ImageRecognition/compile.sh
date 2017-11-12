@@ -1,0 +1,1 @@
+g++ -Wall ./主.cpp -I/usr/local/include -lraspicam -L/opt/vc/lib -lmmal -lmmal_core -lmmal_util -lwiringPi -std=c++11
