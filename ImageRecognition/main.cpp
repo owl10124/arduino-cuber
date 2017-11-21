@@ -18,7 +18,7 @@ const char* path = "/dev/ttyUSB0"; //idek work it out yourself
 int serial;
 char buffer;
 string input;
-int i,j,k;
+int i,j,k,l,m;
 array<char,128> pipe_buffer;
 string result;
 const int ts = 140;
@@ -153,7 +153,7 @@ int main()
 
         strcpy(net, "");
 
-        for (int i=0; i<6; i++){
+        for (int m=0; m<6; m++){
             if (!confirm(serial, "scan")) return 1;
             done_side = false;
             while (!done_side)
@@ -167,42 +167,61 @@ int main()
                     cout<<"No data.\n";
                     return 1;
                 }
-                for (k=-1;k<2;k++)
-                {
-                    for (j=-1;j<2;j++)
-                    {
-                        
+                for (i=-1;i<2;i++){
+                    for (j=-1;j<2;j++){
                         int b[2];
-                        //cout<<"Tile ("<<i<<", "<<j<<"):\n";
+                        cout<<"Tile ("<<i<<", "<<j<<"):\n";
                         b[0]=(w-ts)/2+(i*(ts+m));
                         b[1]=(h-ts)/2+(j*(ts+m));
                         Rect mask(b[0], b[1], ts, ts);
                         Mat tile = img(mask);
-                        Scalar colour = mean(tile);
-                        //imwrite("tile"+to_string((i+1)*3+j+1)+".jpg", tile);
+                        imwrite("tile"+to_string((i+1)*3+j+1)+".jpg", tile);
                         
-                        /*
+                        cvtColor(tile, tile, CV_BGR2HLS);
+                        char col;
+                        map<char,int> colmap;
+                        /*Scalar colour = mean(tile);
+                        
                         Mat colourTile = img(Rect(0, 0, 10, 10));
                         colourTile.setTo(colour);
+                        cvtColor(colourTile, colourTile, CV_HLS2BGR);
                         imwrite("colour"+to_string((i+1)*3+j+1)+".jpg", colourTile);
-                        */
+                        colours[(i+1)*3+j+1]=cchar(colour);*/
                         
-                        colours[(i+1)*3+j+1]=cchar(colour);
+                        for (k=0;k<tile.rows;k++){
+                            for (l=0;l<tile.cols;l++){
+                                col = cchar(tile.at<Vec3b>(k,l));
+                                if (col!='U'){
+                                    if (colmap.count(col)==0){
+                                        colmap.insert(pair<char,int>(col,0));
+                                    } else {
+                                        colmap[col]+=1;
+                                    }
+                                }
+                            }
+                        }
                         
-                        /*
+                        char colour;
+                        for (auto const& x : colmap) {
+                            
+                            cout<<"hi\n";
+                            if(colmap[colour]<x.second){
+                                colour = x.first;
+                            }
+                        }
+                        colours[(i+1)*3+j+1]=colour;
                         cout<<"x: "<<b[0]<<"\n";
                         cout<<"y: "<<b[1]<<"\n";
                         cout<<"x2: "<<b[0]+ts<<"\n";
                         cout<<"y2: "<<b[1]+ts<<"\n";
                         cout<<"\n";
-                        */
                     }
                 }
                 if (colours.find('U')==string::npos) 
                 {
                     serialPrintf(serial, "done_side");
                     done_side = true;
-                    switch(i){
+                    switch(m){
                         case 0: //bottom
                             strcpy(net[27], colours);
                             break;
@@ -234,14 +253,14 @@ int main()
         char nD = net[31];
         char nL = net[40];
         char nB = net[49];
-        for (i=0;i<strlen(net);i++)
+        for (m=0;m<strlen(net);m++)
         {
-                if (net[i] == nU) net[i]='U';
-                if (net[i] == nR) net[i]='R';
-                if (net[i] == nF) net[i]='F';
-                if (net[i] == nD) net[i]='D';
-                if (net[i] == nL) net[i]='L';
-                if (net[i] == nB) net[i]='B';
+                if (net[m] == nU) net[m]='U';
+                if (net[m] == nR) net[m]='R';
+                if (net[m] == nF) net[m]='F';
+                if (net[m] == nD) net[m]='D';
+                if (net[m] == nL) net[m]='L';
+                if (net[m] == nB) net[m]='B';
             }
         }
         shared_ptr<FILE> pipe(popen((string("./kociemba ")+net).c_str(), "r"), pclose);
@@ -265,21 +284,21 @@ int main()
 
         vector<string> moves = split(result, " ");
         char solution[moves.size()+1];
-        for (i=0;i<moves.size();i++)
+        for (m=0;m<moves.size();m++)
         {
-                cout<<moves[i]<<"\n";
-                if (moves[i]== "U") solution[i]='A';
-                else if (moves[i]== "U'") solution[i]='B';
-                else if (moves[i]== "D") solution[i]='C';
-                else if (moves[i]== "D'") solution[i]='D';
-                else if (moves[i]== "F") solution[i]='E';
-                else if (moves[i]== "F'") solution[i]='F';
-                else if (moves[i]== "B") solution[i]='G';
-                else if (moves[i]== "B'") solution[i]='H';
-                else if (moves[i]== "L") solution[i]='I';
-                else if (moves[i]== "L'") solution[i]='J';
-                else if (moves[i]== "R") solution[i]='K';
-                else if (moves[i]== "R'") solution[i]='L';
+                cout<<moves[m]<<"\n";
+                if (moves[m]== "U") solution[m]='A';
+                else if (moves[m]== "U'") solution[m]='B';
+                else if (moves[m]== "D") solution[m]='C';
+                else if (moves[m]== "D'") solution[m]='D';
+                else if (moves[m]== "F") solution[m]='E';
+                else if (moves[m]== "F'") solution[m]='F';
+                else if (moves[m]== "B") solution[m]='G';
+                else if (moves[m]== "B'") solution[m]='H';
+                else if (moves[m]== "L") solution[m]='I';
+                else if (moves[m]== "L'") solution[m]='J';
+                else if (moves[m]== "R") solution[m]='K';
+                else if (moves[m]== "R'") solution[m]='L';
         }
         solution[moves.size()]='\0';
         serialPrintf(solution);
