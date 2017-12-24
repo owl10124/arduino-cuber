@@ -12,6 +12,7 @@
         "string": "cpp",
         "__split_buffer": "cpp",
         "deque": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "string_view": "cpp"
     }
 }
