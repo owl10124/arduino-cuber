@@ -1032,7 +1032,8 @@ void topClockwise()
 
   SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
 
-  frontTurn.move(n * TurnDist);
+  if(n != 2)
+	frontTurn.move(n * TurnDist);
   frontTurn.runToPosition();
 
   TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
@@ -1065,7 +1066,8 @@ void topAnticlockwise()
 
   SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
 
-  backTurn.move(n * TurnDist);
+  if(n != 2)
+	backTurn.move(n * TurnDist);
   backTurn.runToPosition();
 
   TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
@@ -1098,7 +1100,8 @@ void bottomClockwise()
 
   SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
 
-  frontTurn.move(n * TurnDist);
+  if(n != 2)
+	frontTurn.move(n * TurnDist);
   frontTurn.runToPosition();
 
   TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
@@ -1131,7 +1134,8 @@ void bottomAnticlockwise()
 
   SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
 
-  backTurn.move(n * TurnDist);
+  if(n != 2)
+	backTurn.move(n * TurnDist);
   backTurn.runToPosition();
 
   TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
