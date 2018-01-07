@@ -5,22 +5,36 @@ using namespace std;
 using namespace cv;
 
 bool done_side = false;
-const char *path = "/dev/ttyUSB0"; // idek work it out yourself
+const char *path = "/dev/ttyUSB0"; // arduino serial port
 int serial;
 char buffer;
 string input;
+
 int i, j, k, l;
+
 unsigned int m;
+
 array<char, 128> pipe_buffer;
 string result;
-const int ts = 140;
-const int ma = 45;
-const int w = 1280;
-const int h = 720;
+
+const int ts = 140; //tile size
+const int ma = 45;  //margin
+const int w = 1280; //width
+const int h = 720;  //height
+
 Mat img;
+
 char net[55] = {0};
 char *netp = &net[0];
 
+const int white[2] = {0, 80};   //white colour definition
+const int yellow[2] = {25, 45}; //yellow colour definition
+const int orange[2] = {3, 25};  //orange colour definition
+const int red[2] = {3, 170};    //red colour definition
+const int green[2] = {45, 75};  //green colour definition
+const int blue[2] = {75, 125};  //blue colour definition
+
+//function to read serial data
 bool confirm(int s, string c) {
     input = "";
 
@@ -36,6 +50,7 @@ bool confirm(int s, string c) {
     return (input == c);
 }
 
+//function to read file contents. returns as string of file contents
 string readFile(fstream strm) {
     string buffer;
     stringstream result;
@@ -51,21 +66,23 @@ string readFile(fstream strm) {
     }
 }
 
+
+//identify colour of pixels
 char cchar(Vec3i vec) {
     int ch(vec[0]);
     int cl(vec[1]);
     int cs(vec[2]);
-    if (cs <= 80) {
+    if (cs <= white[1]) {
         return 'W';
-    } else if (ch >= 25 && ch <= 45) {
+    } else if (ch >= yellow[0] && ch <= yellow[1]) {
         return 'Y';
-    } else if (ch >= 3 && ch <= 25) {
+    } else if (ch >= orange[0] && ch <= orange[1]) {
         return 'O';
-    } else if ((ch + 10) % 180 <= 13) {
+    } else if (ch <= red[0] || ch >= red[1]) {
         return 'R';
-    } else if (ch >= 45 && ch <= 75) {
+    } else if (ch >= green[0] && ch <= green[1]) {
         return 'G';
-    } else if (ch >= 75 && ch <= 125) {
+    } else if (ch >= blue[0] && ch <= blue[1]) {
         return 'B';
     } else {
         return 'U';
@@ -115,12 +132,12 @@ int main() {
         return 1;
     }
     while (true) {
-        if (!confirm(serial, "ready"))
+        if (!confirm(serial, "ready"))  //handshake with arduino
             return 1;
 
-        serialPrintf(serial, "pi_is_ready");
+        serialPrintf(serial, "pi_is_ready");    //confirm
 
-        if (!confirm(serial, "scan_cube"))
+        if (!confirm(serial, "scan_cube"))  //receive scancude go ahead from arduino
             return 1;
 
         strcpy(net, "");
@@ -130,8 +147,8 @@ int main() {
                 return 1;
             done_side = false;
             while (!done_side) {
-                Camera.grab();
-                Camera.retrieve(img);
+                Camera.grab();  //take picture
+                Camera.retrieve(img);   //get image
                 char colours[10];
                 colours[9] = '\0';
                 if (!img.data) {
@@ -251,7 +268,7 @@ int main() {
         }*/
         char facelets[] = net;
 
-        char *result = solution(facelets, 24, 1000, 0, "cache");
+        char *result = solution(facelets, 24, 1000, 0, "cache"); //solve cube
         if (result == NULL) {
             printf("Unsolvable cube!");
         }
