@@ -1,0 +1,3 @@
+/home/yicheng/Documents/kociemba-develop/kociemba/ckociemba/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/yicheng/Documents/kociemba-develop/kociemba/ckociemba/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/yicheng/Documents/kociemba-develop/kociemba/ckociemba/cmake-build-debug/CMakeFiles/ckociemba.dir

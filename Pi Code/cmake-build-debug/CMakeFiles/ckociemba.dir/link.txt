@@ -1,0 +1,1 @@
+/usr/bin/cc -g   CMakeFiles/ckociemba.dir/coordcube.c.o CMakeFiles/ckociemba.dir/cubiecube.c.o CMakeFiles/ckociemba.dir/facecube.c.o CMakeFiles/ckociemba.dir/search.c.o CMakeFiles/ckociemba.dir/solve.c.o  -o ckociemba 
