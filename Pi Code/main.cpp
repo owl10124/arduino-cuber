@@ -4,9 +4,9 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <opencv2/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv3/core.hpp>
+#include <opencv3/highgui/highgui.hpp>
+#include <opencv3/imgproc/imgproc.hpp>
 #include <raspicam/raspicam_cv.h>
 #include <sstream>
 #include <wiringPi.h>
@@ -280,9 +280,9 @@ int main() {
         if (result == "Unsolvable cube!") {
           continue;
         }*/
-        char facelets[] = net;
+        char *facelets = net;
 
-        char *result = solution(facelets, 24, 1000, 0, "cache"); //solve cube
+        string result = (string)solution(facelets, 24, 1000, 0, "cache"); //solve cube
         if (result == NULL) {
             printf("Unsolvable cube!");
         }
