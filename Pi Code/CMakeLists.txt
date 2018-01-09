@@ -7,22 +7,13 @@ find_package(OpenCV)
 find_library(wiringPi_LIB wiringPi)
 
 set(SOURCE_FILES
-        include/color.h
-        include/coordcube.h
-        include/corner.h
-        include/cubiecube.h
-        include/edge.h
-        include/facecube.h
-        include/facelet.h
-        include/search.h
         coordcube.c
         cubiecube.c
         facecube.c
         search.c
         main.cpp)
 
-include_directories(include/
-		    ${OpenCV_INCLUDE_DIRS})
+include_directories(include/)
 
 add_executable(ckociemba ${SOURCE_FILES})
 
