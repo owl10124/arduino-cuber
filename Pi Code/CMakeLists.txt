@@ -15,7 +15,6 @@ set(SOURCE_FILES
         include/facecube.h
         include/facelet.h
         include/search.h
-        include/stdafx.h
         coordcube.c
         cubiecube.c
         facecube.c
