@@ -1,19 +1,23 @@
 // this is all pseudocode
 #include <array>
+#include <map>
 #include <ctime>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <opencv3/core.hpp>
-#include <opencv3/highgui/highgui.hpp>
-#include <opencv3/imgproc/imgproc.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <raspicam/raspicam_cv.h>
 #include <sstream>
 #include <wiringPi.h>
 #include <wiringSerial.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "search.h"
+
+extern "C" {
+  #include "search.h"
+}
 
 using namespace std;
 using namespace cv;
