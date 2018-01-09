@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 project(ckociemba)
 
-set(CMAKE_CXX_STANDARD 11)
+find_package(raspicam REQUIRED)
+find_package(OpenCV)
 
 set(SOURCE_FILES
         include/color.h
@@ -19,6 +20,9 @@ set(SOURCE_FILES
         search.c
         main.cpp)
 
-include_directories(include/)
+include_directories(include/
+		    ${OpenCV_INCLUDE_DIRS})
 
 add_executable(ckociemba ${SOURCE_FILES})
+set_property(TARGET ckociemba PROPERTY CXX_STANDARD 11)
+set_property(TARGET ckociemba PROPERTY C_STANDARD 11)
