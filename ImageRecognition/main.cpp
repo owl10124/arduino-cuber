@@ -16,7 +16,7 @@ using namespace std;
 using namespace cv;
 
 bool done_side = false;
-const char *path = "/dev/ttyUSB0"; // idek work it out yourself
+string path = "/dev/ttyAMA0"; // idek work it out yourself
 int serial;
 char buffer;
 string input;
@@ -51,8 +51,7 @@ string readFile(fstream strm) {
   string buffer;
   stringstream result;
   if (strm.is_open()) {
-    while (strm) {
-      getline(strm, buffer);
+    while (getline(strm, buffer)) {
       result << buffer;
       buffer = "";
     }
@@ -125,6 +124,7 @@ int main() {
     cout << "Cannot start pi\n";
     return 1;
   }
+
   while (true) {
     if (!confirm(serial, "ready"))
       return 1;
