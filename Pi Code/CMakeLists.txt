@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 project(ckociemba)
 
+set(raspicam_DIR "/usr/local/lib/cmake")
 find_package(raspicam REQUIRED)
 find_package(OpenCV)
 
