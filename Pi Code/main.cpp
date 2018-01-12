@@ -2,12 +2,13 @@
 #include <array>
 #include <map>
 #include <ctime>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <opencv2/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <raspicam/raspicam_cv.h>
 #include <sstream>
 #include <wiringPi.h>
@@ -23,7 +24,7 @@ using namespace std;
 using namespace cv;
 
 bool done_side = false;
-const char *path = "/dev/ttyUSB0"; // arduino serial port
+const char path[] = "/dev/ttyAMA0"; // arduino serial port
 int serial;
 char buffer;
 string input;
@@ -62,9 +63,11 @@ bool confirm(int s, string c) {
 
     while (serialDataAvail(s)) {
         buffer = serialGetchar(s);
+	cout<<"Received character "<<buffer<<"\n";
         input += buffer;
     }
-
+    input.pop_back();
+    cout<<"input: "<<input<<" c: "<<c<<" "<<(input==c)<<"\n";
     return (input == c);
 }
 
@@ -140,8 +143,8 @@ int main() {
     }
 
     // establish serial connection
-    if ((serial = serialOpen(path, 28800)) < 0) {
-        cout << "Cannot open serial\n";
+    if ((serial = serialOpen(path, 9600)) < 0) {
+        cout << serial<<" Cannot open serial\n";
         return 1;
     }
 
@@ -149,6 +152,7 @@ int main() {
         cout << "Cannot start pi\n";
         return 1;
     }
+    cout<<"Setup complete.\n";
     while (true) {
         if (!confirm(serial, "ready"))  //handshake with arduino
             return 1;
@@ -287,7 +291,7 @@ int main() {
         char *facelets = net;
 
         string result = (string)solution(facelets, 24, 1000, 0, "cache"); //solve cube
-        if (result == NULL) {
+        if (result=="") {
             printf("Unsolvable cube!");
         }
 
