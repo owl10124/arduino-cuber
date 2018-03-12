@@ -36,10 +36,12 @@ unsigned int m;
 array<char, 128> pipe_buffer;
 string result;
 
-const int ts = 140; //tile size
-const int ma = 45;  //margin
-const int w = 1280; //width
-const int h = 720;  //height
+const int top = 240;
+const int portside = -40;
+const int ts = 150; //tile size
+const int ma = 140;  //margin
+const int w = 1600; //width
+const int h = 1201;  //height
 
 Mat img;
 
@@ -181,8 +183,8 @@ int main() {
                     for (j = -1; j < 2; j++) {
                         int b[2];
                         cout << "Tile (" << i << ", " << j << "):\n";
-                        b[0] = (w - ts) / 2 + (i * (ts + ma));
-                        b[1] = (h - ts) / 2 + (j * (ts + ma));
+                        b[0] = (w + portside - ts) / 2 + (j * (ts + ma));
+                        b[1] = (h + top - ts) / 2 + (i * (ts + ma));
                         Rect mask(b[0], b[1], ts, ts);
                         Mat tile = img(mask);
                         imwrite("tile" + to_string((i + 1) * 3 + j + 1) + ".jpg", tile);

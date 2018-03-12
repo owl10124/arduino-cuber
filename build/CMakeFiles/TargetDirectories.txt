@@ -1,0 +1,3 @@
+/Users/ThePocketCalculator/Desktop/vscode/collabs/arduino-cuber/build/CMakeFiles/rebuild_cache.dir
+/Users/ThePocketCalculator/Desktop/vscode/collabs/arduino-cuber/build/CMakeFiles/edit_cache.dir
+/Users/ThePocketCalculator/Desktop/vscode/collabs/arduino-cuber/build/CMakeFiles/tilapia.dir
