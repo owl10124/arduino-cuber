@@ -10,9 +10,6 @@ const int h = 720;  //height
 
 Mat img;
 
-char net[55] = {0};
-char *netp = &net[0];
-
 const int white[2] = {0, 80};   //white colour definition
 const int yellow[2] = {25, 45}; //yellow colour definition
 const int orange[2] = {3, 25};  //orange colour definition
@@ -45,8 +42,7 @@ int main()
 {
     char colours[10];
     colours[9] = '\0';
-    Mat img;
-    img=imread("image2.jpg");
+    img=imread("image.jpg");
     if (!img.data) {
         cout << "No data.\n";
         return 1;
