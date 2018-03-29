@@ -1,0 +1,3 @@
+/home/pi/Desktop/arduino-cuber/PiCode/build/CMakeFiles/rebuild_cache.dir
+/home/pi/Desktop/arduino-cuber/PiCode/build/CMakeFiles/edit_cache.dir
+/home/pi/Desktop/arduino-cuber/PiCode/build/CMakeFiles/ckociemba.dir

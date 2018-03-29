@@ -26,7 +26,7 @@
 #define FullTurn 1600
 #define TrigPoint 900
 
-#define SlideDist FullTurn/4 * 10
+#define SlideDist FullTurn/4 * 5
 #define MaxSpeed 80000
 #define MaxAccel 50000
 #define TurnDist FullTurn/4
@@ -142,11 +142,12 @@ void setup()
 
   Serial.begin(115200);  // Set serial port communication baund rate
 
-#if 0 
+#if 1 
   // initiates a handshake with the raspberry pi
-  while (bHandshake == false)
+  delay(5000);
+  while (!bHandshake)
   {
-    Serial.println("ready");
+    Serial.print("ready\n");
     delay(1000);
     if (Serial.available() > 0)
     {
@@ -155,7 +156,7 @@ void setup()
       if (nTotalChar > MAX_SERIAL_LENGTH)
         nTotalChar = MAX_SERIAL_LENGTH;
       int x;
-      for (x = 0; x < nTotalChar; x++)
+      for (x = 0; x < (nTotalChar); x++)
       {
         chSerial[x] = Serial.read();
       }
@@ -163,6 +164,7 @@ void setup()
       char* pchPiIsReady = "pi_is_ready";
       if (strcmp(chSerial, pchPiIsReady)==0)
         bHandshake = true;
+      else {Serial.print("aaaaaaaaaaaa\n");}
     }
   }
   // initializes the motors to correct positions
@@ -275,10 +277,11 @@ void loop()
   if (bStart == true && bHoldCube == true)
   {
     // communicates with the raspberry pi to scan the cube
-    //ScanCube();
+    ScanCube();
     while (bStart = true)
 #else
   bStart = true;
+  ScanCube();
   if (1)
   {
 #endif
@@ -404,7 +407,7 @@ void HoldCube(bool Hold)
 void ScanCube()
 {
   // tells the pi to start scanning
-  Serial.println("init_scan");
+  Serial.print("init_scan\n");
   delay(200);
 
   int nSides = 6;
@@ -433,7 +436,7 @@ void ScanCube()
     SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
     TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
 
-    Serial.println("scan");
+    Serial.print("scan\n");
 
     int x;
 
@@ -467,7 +470,7 @@ void ScanCube()
 
     TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist * 2);
 
-    Serial.println("scan");
+    Serial.print("scan\n");
 
     while (bSideDone == false)
     {
@@ -498,7 +501,7 @@ void ScanCube()
     SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
     TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist);
 
-    Serial.println("scan");
+    Serial.print("scan\n");
 
     while (bSideDone == false)
     {
@@ -526,7 +529,7 @@ void ScanCube()
 
     TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist * 2);
 
-    Serial.println("scan");
+    Serial.print("scan\n");
 
     while (bSideDone == false)
     {
@@ -559,7 +562,7 @@ void ScanCube()
     SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoClockwise, SlideDist);
     SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
 
-    Serial.println("scan");
+    Serial.print("scan\n");
 
     while (bSideDone == false)
     {
@@ -587,7 +590,7 @@ void ScanCube()
 
     TurnTwoMotors(FRONTTURN, BACKTURN, GoClockwise, TurnDist * 2);
 
-    Serial.println("scan");
+    Serial.print("scan\n");
 
     while (bSideDone == false)
     {
@@ -710,7 +713,7 @@ void initMotors()
     rightSlide.run();
   }
   rightSlide.setCurrentPosition(0);
-#endif
+
   // resets the position of the four turning
   // motors on top using te data gathered
   // from the hall effect sensors
@@ -745,7 +748,7 @@ void initMotors()
   }
   rightTurn.setCurrentPosition(0);
   //Serial.println("rightTurn Stopped!");
-
+#endif
   // Change these to suit your stepper if you want
   frontTurn.setEnablePin(30);
   frontTurn.setMaxSpeed(MaxSpeed);

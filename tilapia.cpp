@@ -1,12 +1,13 @@
 #include <iostream>
-#include <opencv2/core.hpp>
+#include <opencv2/core/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <map>
 
 using namespace std;
 using namespace cv;
 int i,j,k,l;
-const int top = 240;
+const int top = 120;
 const int portside = -40;
 const int ts = 150; //tile size
 const int ma = 140;  //margin
@@ -16,11 +17,11 @@ const int h = 1201;  //height
 Mat img;
 
 const int white[2] = {0, 80};   //white colour definition
-const int yellow[2] = {25, 45}; //yellow colour definition
-const int orange[2] = {3, 25};  //orange colour definition
-const int red[2] = {3, 170};    //red colour definition
-const int green[2] = {45, 75};  //green colour definition
-const int blue[2] = {75, 125};  //blue colour definition
+const int yellow[2] = {10, 30}; //yellow colour definition
+const int orange[2] = {0, 100};  //orange colour definition
+const int red[2] = {10, 160};    //red colour definition
+const int green[2] = {30, 100};  //green colour definition
+const int blue[2] = {100, 125};  //blue colour definition
 
 char cchar(Vec3i vec) {
     int ch(vec[0]);
@@ -30,10 +31,8 @@ char cchar(Vec3i vec) {
         return 'W';
     } else if (ch >= yellow[0] && ch <= yellow[1]) {
         return 'Y';
-    } else if (ch >= orange[0] && ch <= orange[1]) {
-        return 'O';
     } else if (ch <= red[0] || ch >= red[1]) {
-        return 'R';
+        return cl<orange[1] ? 'R' : 'O' ;
     } else if (ch >= green[0] && ch <= green[1]) {
         return 'G';
     } else if (ch >= blue[0] && ch <= blue[1]) {

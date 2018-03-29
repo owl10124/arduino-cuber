@@ -4,15 +4,15 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/ThePocketCalculator/Desktop/vscode/collabs/arduino-cuber/tilapia.cpp" "/Users/ThePocketCalculator/Desktop/vscode/collabs/arduino-cuber/build/CMakeFiles/tilapia.dir/tilapia.cpp.o"
+  "/home/pi/Desktop/arduino-cuber/tilapia.cpp" "/home/pi/Desktop/arduino-cuber/build/CMakeFiles/tilapia.dir/tilapia.cpp.o"
   )
-set(CMAKE_CXX_COMPILER_ID "AppleClang")
+set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "/usr/local/Cellar/opencv@2/2.4.13.5/include/opencv"
-  "/usr/local/Cellar/opencv@2/2.4.13.5/include"
   "../include"
+  "/usr/local/include"
+  "/usr/local/include/opencv"
   )
 
 # Targets to which this target links.
