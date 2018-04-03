@@ -433,6 +433,7 @@ void ScanCube()
 
   if (strcmp(chSerial, pchGO) == 0)
   {
+    #if 0
     SlideTwoMotors(FRONTSLIDE, BACKSLIDE, GoAntiClockwise, SlideDist);
     TurnTwoMotors(LEFTTURN, RIGHTTURN, GoClockwise, TurnDist);
 
@@ -563,7 +564,6 @@ void ScanCube()
     SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
 
     Serial.print("scan\n");
-
     while (bSideDone == false)
     {
       if (Serial.available() > 0)
@@ -624,6 +624,36 @@ void ScanCube()
     SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoAntiClockwise, SlideDist);
     TurnTwoMotors(LEFTTURN, RIGHTTURN, GoAntiClockwise, TurnDist);
     SlideTwoMotors(LEFTSLIDE, RIGHTSLIDE, GoClockwise, SlideDist);
+  #else
+  int x;
+  Serial.print("scan\nscan\nscan\nscan\nscan\nscan\n");
+  for (int i=0;i<6;i++)
+  {
+  while (bSideDone == false)
+    {
+      if (Serial.available() > 0)
+      {
+        delay(150);
+        nTotalChar = Serial.available();
+        if (nTotalChar > MAX_SERIAL_LENGTH)
+          nTotalChar = MAX_SERIAL_LENGTH;
+
+        for (x = 0; x < nTotalChar; x++)
+        {
+          chSerial[x] = Serial.read();
+        }
+
+        chSerial[x] = 0x00;
+
+        if (strcmp(chSerial, pchDoneSide) == 0)
+        {
+          bSideDone = true;
+          nSides -= 1;
+        }
+      }
+    }
+  }
+    #endif
   }
   return;
 }

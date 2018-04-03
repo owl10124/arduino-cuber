@@ -63,7 +63,6 @@ bool confirm(int s, string c) {
 	delay(10);
 	buffer=serialGetchar(s);
     }
-    serialFlush(s);
     cout<<(input==c)<<"\n";
     return(input==c);
 }
@@ -219,7 +218,7 @@ cout<<"Meow!\n";
         }
         char *facelets = net;
 	*/
-	char *facelets = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBBB";
+	char *facelets = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
         string result = (string)solution(facelets, 24, 1000, 0, "cache"); //solve cube
         if (result=="") {
             printf("Unsolvable cube!");
@@ -264,6 +263,6 @@ cout<<"Meow!\n";
                 solution[m] = 'L';
         }
         solution[moves.size()] = '\0';
-        serialPrintf(serial, solution);
+        serialPuts(serial, solution);
     }
 }
