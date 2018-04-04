@@ -8,6 +8,9 @@
 #include <Stepper.h>
 #include <AccelStepper.h>
 
+#define tolerance FullTurn/16
+#define calibration FullTurn/1600 * 10
+
 #define MotorCalSw 40
 #define StartSw 42
 #define HoldCubeSw 44
@@ -26,7 +29,7 @@
 #define FullTurn 1600
 #define TrigPoint 900
 
-#define SlideDist FullTurn/4 * 5
+#define SlideDist FullTurn/4 * 6
 #define MaxSpeed 80000
 #define MaxAccel 50000
 #define TurnDist FullTurn/4
@@ -141,6 +144,14 @@ void setup()
   pinMode(HoldCubeSw, INPUT);
 
   Serial.begin(115200);  // Set serial port communication baund rate
+  Serial3.begin(115200);
+  
+  int ok = 0;
+  while (ok < 20) {
+    Serial3.print("test\n");
+    delay(100);
+    ok++;
+  }
 
 #if 1 
   // initiates a handshake with the raspberry pi
@@ -184,7 +195,7 @@ void loop()
 
   bool bStart = false;
 
-#if 0
+#if 1
   bool bCalMotors = false;
   // read the pushbutton input pin:
   if (bHoldCube == true)
@@ -277,18 +288,19 @@ void loop()
   if (bStart == true && bHoldCube == true)
   {
     // communicates with the raspberry pi to scan the cube
+    Serial3.print("Scanning cube");
     ScanCube();
-    while (bStart = true)
 #else
   bStart = true;
   ScanCube();
   if (1)
   {
 #endif
-    while (bStart = true)
+    while (bStart == true)
     {
       // gets instructons from the raspberry pi
       nTotalStep = 0;
+      while (!Serial.available()) true;
       if (Serial.available() > 0)
       {
         delay(150);
@@ -303,11 +315,10 @@ void loop()
       // checks for error in the transmitted commands
       if (CheckCommand() == 1)
         break;
-
+  #if 1
       // executes the commands
       for (nCounter = 0; nCounter < nTotalStep;)
       {
-        Serial.println(chSequence[nCounter]);
         switch (chSequence[nCounter])
         {
         case 'A':
@@ -359,12 +370,12 @@ void loop()
           break;
         }
       }
-
-#if 0
+#endif
+#if 1
       HoldCube(false);
+#endif
       bHoldCube = false;
       bStart = false;
-#endif 
     }
   }
 }
@@ -652,6 +663,7 @@ void ScanCube()
         }
       }
     }
+    bSideDone=false;
   }
     #endif
   }
@@ -711,7 +723,7 @@ int CheckCommand()
 
 void initMotors()
 {
-  //Serial.println("initMotors Starts!");
+  Serial3.println("initMotors Starts!");
 
 #if 0
   // initializes the bottom four slider motors
@@ -846,6 +858,23 @@ void initMotors()
   //Serial.println("initMotor Done!");
 }
 
+void TurnTolerance(AccelStepper motor, bool spin_direction) {
+  if (spin_direction) {
+    motor.move(tolerance);
+    motor.runToPosition();
+    
+    motor.move(- calibration - tolerance);
+    motor.runToPosition();
+  }
+  else {
+    motor.move(-tolerance);
+    motor.runToPosition();
+    
+    motor.move(calibration + tolerance);
+    motor.runToPosition();
+  }
+}
+
 // twelve different functions below executes the solving 
 // sequence by turing the faces of cubes. the function
 // also takes in account the next move to increase efficiency.
@@ -861,7 +890,9 @@ void frontClockwise()
       break;
     n++;
   } while (chSequence[nCounter] == 'E');
-
+  
+  TurnTolerance(frontTurn, true);
+  
   frontSlide.move(-SlideDist);
   frontSlide.runToPosition();
 
@@ -885,6 +916,8 @@ void frontAnticlockwise()
       break;
     n++;
   } while (chSequence[nCounter] == 'F');
+  
+  TurnTolerance(frontTurn);
 
   frontSlide.move(-SlideDist);
   frontSlide.runToPosition();

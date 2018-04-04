@@ -107,7 +107,7 @@ int main() {
 
     // camera stuff
     cout << "Opening camera\n";
-    #if 0
+    #if 1
 	if (!Camera.open()) {
         cout << "Error opening camera\n";
         return 1;
@@ -128,13 +128,14 @@ int main() {
         return 1;
     }
     cout<<"Setup complete.\n";
-    while (true) {
-        if (!confirm(serial, "ready"))  //handshake with arduino
-            return 1;
-	cout<<"reddy\n";
 
+	if (!confirm(serial, "ready"))  //handshake with arduino
+	    return 1;
+	cout<<"reddy\n";
+	
         serialPuts(serial, "pi_is_ready");    //confirm
 
+    while (true) {
         if (!confirm(serial, "init_scan"))  //receive scancude go ahead from arduino
             return 1;
 	serialPuts(serial,"GO");
@@ -189,10 +190,10 @@ int main() {
 	        	}
 		}
 #else
-	    delay(100);
 #endif
 cout<<"Meow!\n";
 	    serialPuts(serial,"done_side");
+	    delay(500);
         }
         // scan_cube done
         /*cout << net;
@@ -234,9 +235,9 @@ cout<<"Meow!\n";
         cout << result << "\n";
 
         vector <string> moves = split(result, " ");
+	moves.pop_back();
         char solution[moves.size() + 1];
         for (m = 0; m < moves.size(); m++) {
-            cout << moves[m] << "\n";
             if (moves[m] == "U")
                 solution[m] = 'A';
             else if (moves[m] == "U'")
@@ -261,6 +262,7 @@ cout<<"Meow!\n";
                 solution[m] = 'K';
             else if (moves[m] == "R'")
                 solution[m] = 'L';
+	    cout<<(int)solution[m]<<" meow\n";
         }
         solution[moves.size()] = '\0';
         serialPuts(serial, solution);
