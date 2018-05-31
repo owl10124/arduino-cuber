@@ -132,68 +132,66 @@ int main() {
 
 	if (!confirm(serial, "ready"))  //handshake with arduino
 	    return 1;
-	cout<<"reddy\n";
-	
-        serialPuts(serial, "pi_is_ready");    //confirm
+	    cout<<"reddy\n"; //arduino sent ready
+        serialPuts(serial, "pi_is_ready"); //confirm
 
     while (true) {
-        if (!confirm(serial, "init_scan"))  //receive scancude go ahead from arduino
+        if (!confirm(serial, "init_scan")) //receive scancube go ahead from arduino
             return 1;
-	serialPuts(serial,"GO");
+        serialPuts(serial,"GO");
         strcpy(net, "");
-
         for (int m = 0; m < 6; m++) {
             if (!confirm(serial, "scan"))
                 return 1;
-    #if 0
-                Camera.grab();  //take picture
-                Camera.retrieve(img); //get image
-                char colours[10];
-                colours[9] = '\0';
-                if (!img.data) {
-                    cout << "No data.\n";
-                    return 1;
-                }
-                for (i = -1; i < 2; i++) 
-                {
-                    for (j = -1; j < 2; j++) 
-                    {
-                        int b[2];
-                        cout << "Tile (" << i << ", " << j << "):\n";
-                        b[0] = (w + portside - ts) / 2 + (j * (ts + ma)); //x coord of tile
-                        b[1] = (h + top - ts) / 2 + (i * (ts + ma)); //y coord of tile
-                        Rect mask(b[0], b[1], ts, ts);
-                        Mat tile = img(mask);
-                        imwrite("tile" + to_string((i + 1) * 3 + j + 1) + ".jpg", tile);
-                            
-                        cvtColor(tile, tile, CV_BGR2HLS); //converts to HLS colour space
-                        char col;
-                        map<char, int> colmap; //map of how many times each colour appears
-                        for (k = 0; k < tile.rows; k++) {
-                            for (l = 0; l < tile.cols; l++) {
-                                    col = cchar(tile.at<Vec3b>(k, l)); //colour of current pixel
-                                    if (col != 'U') {
-                                        if (colmap.count(col) == 0) { 
-                                            colmap.insert(pair<char, int>(col, 0));
-                                        } else {
-                                        colmap[col] += 1;
-                                        } //basically frequency table
-                                    }
-                            }
-                        }	
-                        char colour;
-                        for (auto const &x : colmap) {
-                            cout << "hi\n";
-                            if (colmap[colour] < x.second) colour = x.first;
-                        } //get most often occuring colour
-                        colours[(i + 1) * 3 + j + 1] = colour;
-                    }
-                }
-#endif
-                cout<<"Meow!\n"; //prints 'Meow!' to stdout
-                serialPuts(serial,"done_side");
-                delay(500);
+#if 0
+            Camera.grab();  //take picture
+            Camera.retrieve(img); //get image
+            char colours[10];
+            colours[9] = '\0';
+            if (!img.data) {
+                cout << "No data.\n";
+                return 1;
             }
+            for (i = -1; i < 2; i++) 
+            {
+                for (j = -1; j < 2; j++) 
+                {
+                    int b[2];
+                    cout << "Tile (" << i << ", " << j << "):\n";
+                    b[0] = (w + portside - ts) / 2 + (j * (ts + ma)); //x coord of tile
+                    b[1] = (h + top - ts) / 2 + (i * (ts + ma)); //y coord of tile
+                    Rect mask(b[0], b[1], ts, ts);
+                    Mat tile = img(mask);
+                    imwrite("tile" + to_string((i + 1) * 3 + j + 1) + ".jpg", tile);
+                        
+                    cvtColor(tile, tile, CV_BGR2HLS); //converts to HLS colour space
+                    char col;
+                    map<char, int> colmap; //map of how many times each colour appears
+                    for (k = 0; k < tile.rows; k++) {
+                        for (l = 0; l < tile.cols; l++) {
+                            col = cchar(tile.at<Vec3b>(k, l)); //colour of current pixel
+                            if (col != 'U') {
+                                if (colmap.count(col) == 0) { 
+                                    colmap.insert(pair<char, int>(col, 0));
+                                } else {
+                                    colmap[col] += 1;
+                                } //basically frequency table
+                            }
+                        }
+                    }	
+                    char colour;
+                    for (auto const &x : colmap) {
+                        cout << "hi\n";
+                        if (colmap[colour] < x.second) colour = x.first;
+                    } //get most often occuring colour
+                    colours[(i + 1) * 3 + j + 1] = colour;
+                }
+            }
+#endif
+            cout<<"Meow!\n"; //prints 'Meow!' to stdout; 1 face scanned
+            serialPuts(serial,"done_side");
+            delay(500);
+        }
         // scan_cube done
         /*cout << net;
         char nU = net[4];
