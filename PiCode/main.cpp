@@ -33,7 +33,7 @@ array<char, 128> pipe_buffer;
 string result;
 
 const int top = 120;
-const int portside = -40;
+const int portside = -40; //left
 const int ts = 150; //tile size
 const int ma = 140;  //margin
 const int w = 1600; //width
@@ -112,6 +112,7 @@ int main() {
         cout << "Error opening camera\n";
         return 1;
     }
+    //more properties
     Camera.set(CV_CAP_PROP_FRAME_WIDTH, 1600);
     Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 1201);
     Camera.set(CV_CAP_PROP_SATURATION, 100);
@@ -144,57 +145,55 @@ int main() {
         for (int m = 0; m < 6; m++) {
             if (!confirm(serial, "scan"))
                 return 1;
-#if 0
+    #if 0
                 Camera.grab();  //take picture
-                Camera.retrieve(img);   //get image
+                Camera.retrieve(img); //get image
                 char colours[10];
                 colours[9] = '\0';
                 if (!img.data) {
                     cout << "No data.\n";
                     return 1;
                 }
-	    	for (i = -1; i < 2; i++) 
-	    	{
-	        	for (j = -1; j < 2; j++) 
-	        	{
-	            		int b[2];
-	            		cout << "Tile (" << i << ", " << j << "):\n";
-	            		b[0] = (w + portside - ts) / 2 + (j * (ts + ma));
-	            		b[1] = (h + top - ts) / 2 + (i * (ts + ma));
-	            		Rect mask(b[0], b[1], ts, ts);
-	            		Mat tile = img(mask);
-	            		imwrite("tile" + to_string((i + 1) * 3 + j + 1) + ".jpg", tile);
-	            		
-		        	cvtColor(tile, tile, CV_BGR2HLS);
-	            		char col;
-	            		map<char, int> colmap;
-		
-		            	for (k = 0; k < tile.rows; k++) {
-	        	        	for (l = 0; l < tile.cols; l++) {
-	                	    		col = cchar(tile.at<Vec3b>(k, l));
-	                    			if (col != 'U') {
-	                        			if (colmap.count(col) == 0) {
-	                        	    		colmap.insert(pair<char, int>(col, 0));
-	                        			} else {
-	                        	   	 	colmap[col] += 1;
-	                        			}
-	                    			}
-	                		}
-	            		}	
-	            		char colour;
-	            		for (auto const &x : colmap) {
-	                		cout << "hi\n";
-	                		if (colmap[colour] < x.second) colour = x.first;
-	            		}
-	            		colours[(i + 1) * 3 + j + 1] = colour;
-	        	}
-		}
-#else
+                for (i = -1; i < 2; i++) 
+                {
+                    for (j = -1; j < 2; j++) 
+                    {
+                        int b[2];
+                        cout << "Tile (" << i << ", " << j << "):\n";
+                        b[0] = (w + portside - ts) / 2 + (j * (ts + ma)); //x coord of tile
+                        b[1] = (h + top - ts) / 2 + (i * (ts + ma)); //y coord of tile
+                        Rect mask(b[0], b[1], ts, ts);
+                        Mat tile = img(mask);
+                        imwrite("tile" + to_string((i + 1) * 3 + j + 1) + ".jpg", tile);
+                            
+                        cvtColor(tile, tile, CV_BGR2HLS); //converts to HLS colour space
+                        char col;
+                        map<char, int> colmap; //map of how many times each colour appears
+                        for (k = 0; k < tile.rows; k++) {
+                            for (l = 0; l < tile.cols; l++) {
+                                    col = cchar(tile.at<Vec3b>(k, l)); //colour of current pixel
+                                    if (col != 'U') {
+                                        if (colmap.count(col) == 0) { 
+                                            colmap.insert(pair<char, int>(col, 0));
+                                        } else {
+                                        colmap[col] += 1;
+                                        } //basically frequency table
+                                    }
+                            }
+                        }	
+                        char colour;
+                        for (auto const &x : colmap) {
+                            cout << "hi\n";
+                            if (colmap[colour] < x.second) colour = x.first;
+                        } //get most often occuring colour
+                        colours[(i + 1) * 3 + j + 1] = colour;
+                    }
+                }
 #endif
-cout<<"Meow!\n";
-	    serialPuts(serial,"done_side");
-	    delay(500);
-        }
+                cout<<"Meow!\n"; //prints 'Meow!' to stdout
+                serialPuts(serial,"done_side");
+                delay(500);
+            }
         // scan_cube done
         /*cout << net;
         char nU = net[4];
@@ -225,7 +224,7 @@ cout<<"Meow!\n";
             printf("Unsolvable cube!");
         }
 
-        result = replace(result, "U2", "U U");
+        result = replace(result, "U2", "U U"); =
         result = replace(result, "D2", "D D");
         result = replace(result, "L2", "L L");
         result = replace(result, "R2", "R R");
@@ -235,8 +234,8 @@ cout<<"Meow!\n";
         cout << result << "\n";
 
         vector <string> moves = split(result, " ");
-	moves.pop_back();
-        char solution[moves.size() + 1];
+	    moves.pop_back();
+        char solution[moves.size() + 1]; //string to be sent to serial; convert
         for (m = 0; m < moves.size(); m++) {
             if (moves[m] == "U")
                 solution[m] = 'A';
@@ -262,7 +261,7 @@ cout<<"Meow!\n";
                 solution[m] = 'K';
             else if (moves[m] == "R'")
                 solution[m] = 'L';
-	    cout<<(int)solution[m]<<" meow\n";
+	    cout<<(int)solution[m]<<" meow\n"; //meow
         }
         solution[moves.size()] = '\0';
         serialPuts(serial, solution);
